@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { useI18n } from '../../i18n/index.jsx';
 import { Button } from './Button.jsx';
 import { CloseIcon } from './icons.jsx';
 import './Modal.css';
@@ -15,6 +16,7 @@ import './Modal.css';
  * @param {Array<{label: string, onClick: () => void, variant?: string}>} [props.actions]
  */
 export function Modal({ open, title, description, children, actions = [], onClose, dismissOnBackdrop = true }) {
+  const { t } = useI18n();
   const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
   const titleId = useId();
@@ -88,7 +90,7 @@ export function Modal({ open, title, description, children, actions = [], onClos
         <button
           type="button"
           className="modal__close"
-          aria-label="Close dialog"
+          aria-label={t('modal.close')}
           onClick={() => closeRef.current?.()}
         >
           <CloseIcon />

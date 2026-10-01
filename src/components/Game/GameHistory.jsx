@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { EVENT_TYPE } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { ChevronIcon, DiceIcon } from '../UI/icons.jsx';
 import './GameHistory.css';
 
@@ -23,6 +24,7 @@ export function GameHistory({ history }) {
     }
   });
 
+  const { t, n } = useI18n();
   const panelId = useId();
   const entries = history.slice(0, VISIBLE_LIMIT);
 
@@ -39,9 +41,9 @@ export function GameHistory({ history }) {
           <DiceIcon />
         </span>
         <span className="history__title label" id={`${panelId}-title`}>
-          Last rolls
+          {t('history.title')}
         </span>
-        <span className="history__count label">{history.length}</span>
+        <span className="history__count label">{n(history.length)}</span>
         <span className="history__chevron" aria-hidden="true">
           <ChevronIcon />
         </span>
@@ -49,14 +51,14 @@ export function GameHistory({ history }) {
 
       <div className="history__body" id={panelId} hidden={!open}>
         {entries.length === 0 ? (
-          <p className="history__empty">No rolls yet — take the first one.</p>
+          <p className="history__empty">{t('history.empty')}</p>
         ) : (
           <ol className="history__list">
             {entries.map((entry) => (
               <li className={`history__row history__row--${entry.type}`} key={entry.id}>
                 <span className={`history__dot history__dot--p${entry.playerIndex + 1}`} aria-hidden="true" />
-                <span className="history__text">{describe(entry)}</span>
-                <span className="history__value">{valueOf(entry)}</span>
+                <span className="history__text">{describe(entry, t)}</span>
+                <span className="history__value">{valueOf(entry, n)}</span>
               </li>
             ))}
           </ol>
@@ -69,32 +71,32 @@ export function GameHistory({ history }) {
 /**
  * Human-readable one-liner for a log entry.
  * @param {object} entry
+ * @param {(key: string, params?: object) => string} t
  */
-function describe(entry) {
+function describe(entry, t) {
   switch (entry.type) {
     case EVENT_TYPE.BUST:
-      return entry.snakeEyes
-        ? `${entry.playerName} rolled snake eyes — everything lost`
-        : `${entry.playerName} rolled a 1 — pot lost`;
+      return t(entry.snakeEyes ? 'history.snake' : 'history.bust', { name: entry.playerName });
     case EVENT_TYPE.BANK:
-      return `${entry.playerName} banked`;
+      return t('history.bank', { name: entry.playerName });
     default:
-      return `${entry.playerName} rolled`;
+      return t('history.roll', { name: entry.playerName });
   }
 }
 
 /**
  * The number that matters for this entry.
  * @param {object} entry
+ * @param {(value: number) => string} n
  */
-function valueOf(entry) {
+function valueOf(entry, n) {
   switch (entry.type) {
     case EVENT_TYPE.BUST:
-      return entry.lostScore > 0 ? `−${entry.lostScore}` : '0';
+      return entry.lostScore > 0 ? `−${n(entry.lostScore)}` : n(0);
     case EVENT_TYPE.BANK:
-      return `+${entry.amount}`;
+      return `+${n(entry.amount)}`;
     default:
-      return entry.values?.length > 1 ? entry.values.join(' + ') : String(entry.value);
+      return entry.values?.length > 1 ? entry.values.map(n).join(' + ') : n(entry.value);
   }
 }
 

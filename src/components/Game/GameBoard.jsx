@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { EVENT_TYPE, GAME_STATUS, usesTwoDice } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { Notice } from '../UI/Notice.jsx';
 import { Dice } from './Dice.jsx';
 import { PlayerCard } from './PlayerCard.jsx';
@@ -37,6 +38,7 @@ export function GameBoard({ game }) {
     winner,
   } = game;
 
+  const { t, n } = useI18n();
   const current = players[currentPlayerIndex];
   const leaderIndex = useMemo(() => {
     const top = Math.max(...players.map((player) => player.score));
@@ -51,22 +53,31 @@ export function GameBoard({ game }) {
     if (!lastEvent) return '';
     switch (lastEvent.type) {
       case EVENT_TYPE.BUST:
-        return lastEvent.snakeEyes
-          ? `${lastEvent.playerName} rolled snake eyes. ${lastEvent.lostScore} points lost. Turn passes.`
-          : `${lastEvent.playerName} rolled a 1. ${lastEvent.lostScore} points lost. Turn passes.`;
+        return t(lastEvent.snakeEyes ? 'ann.snake' : 'ann.bust', {
+          name: lastEvent.playerName,
+          lost: lastEvent.lostScore,
+        });
       case EVENT_TYPE.BANK:
-        return `${lastEvent.playerName} banked ${lastEvent.amount} points. Total score ${lastEvent.totalScore}.`;
+        return t('ann.bank', {
+          name: lastEvent.playerName,
+          amount: lastEvent.amount,
+          total: lastEvent.totalScore,
+        });
       default:
-        return `${lastEvent.playerName} rolled ${lastEvent.values?.join(' and ') ?? lastEvent.value}. Turn score ${lastEvent.turnScore}.`;
+        return t('ann.roll', {
+          name: lastEvent.playerName,
+          faces: (lastEvent.values ?? [lastEvent.value]).map(n).join(t('ann.and')),
+          pot: lastEvent.turnScore,
+        });
     }
-  }, [lastEvent]);
+  }, [lastEvent, t, n]);
 
   return (
-    <main className="board" aria-label="Pig game board">
+    <main className="board" aria-label={t('board.aria')}>
       <Notice notice={notice} />
 
       <div className="board__main">
-        <section className="board__players" aria-label="Players" data-count={players.length}>
+        <section className="board__players" aria-label={t('board.players')} data-count={players.length}>
           {players.map((player, index) => (
             <PlayerCard
               key={player.id}
@@ -81,11 +92,14 @@ export function GameBoard({ game }) {
           ))}
         </section>
 
-        <section className="board__stage" aria-label="Current turn">
+        <section className="board__stage" aria-label={t('board.currentTurn')}>
           {game.seriesLength > 1 ? (
             <p className="board__series">
-              Best of {game.seriesLength} · Game {game.gameNumber} ·{' '}
-              {players.map((player) => `${player.name} ${game.seriesWins[player.index]}`).join(' – ')}
+              {t('board.series', {
+                len: game.seriesLength,
+                game: game.gameNumber,
+                scores: players.map((player) => `${player.name} ${n(game.seriesWins[player.index])}`).join(' – '),
+              })}
             </p>
           ) : null}
 
@@ -94,7 +108,9 @@ export function GameBoard({ game }) {
             key={`turn-${currentPlayerIndex}-${winner ? 'w' : ''}`}
           >
             <span className="board__turn-dot" aria-hidden="true" />
-            <span className="board__turn-name">{winner ? `${winner.name} wins!` : `${current.name}'s turn`}</span>
+            <span className="board__turn-name">
+              {winner ? t('board.wins', { name: winner.name }) : t('board.turn', { name: current.name })}
+            </span>
           </p>
 
           <div className="board__dice">
@@ -122,10 +138,11 @@ export function GameBoard({ game }) {
         </section>
       </div>
 
-      <aside className="board__aside" aria-label="Recent activity">
+      <aside className="board__aside" aria-label={t('board.activity')}>
         <GameHistory history={history} />
         <p className="board__keys">
-          Press <kbd>R</kbd> to roll · <kbd>B</kbd> to bank · <kbd>U</kbd> to undo a bank · <kbd>M</kbd> to mute
+          {t('start.keyboard')} <kbd>R</kbd> {t('key.roll')} · <kbd>B</kbd> {t('key.bank')} · <kbd>U</kbd>{' '}
+          {t('key.undo')} · <kbd>M</kbd> {t('key.mute')}
         </p>
       </aside>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { randomInt } from '../../utils/random.js';
 import { DICE_MOOD } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import useReducedMotion from '../../hooks/useReducedMotion.js';
 import './Dice.css';
 
@@ -30,6 +31,7 @@ const CELLS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
  * @param {number} [props.rollCount] changes once per roll, used to replay the landing
  */
 export function Dice({ value = null, mood = DICE_MOOD.IDLE, rolling = false, rollCount = 0 }) {
+  const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const [face, setFace] = useState(value);
 
@@ -45,14 +47,9 @@ export function Dice({ value = null, mood = DICE_MOOD.IDLE, rolling = false, rol
   }, [rolling, reducedMotion, value]);
 
   const pips = face ? PIP_MAP[face] : [];
-  const label = rolling ? 'Dice rolling' : value ? `Dice showing ${value}` : 'Dice not rolled yet';
+  const label = rolling ? t('dice.rolling') : value ? t('dice.showing', { n: value }) : t('dice.empty');
 
-  const classes = [
-    'dice',
-    `dice--${mood}`,
-    rolling ? 'is-rolling' : '',
-    !rolling && rollCount > 0 ? 'is-landing' : '',
-  ]
+  const classes = ['dice', `dice--${mood}`, rolling ? 'is-rolling' : '', !rolling && rollCount > 0 ? 'is-landing' : '']
     .filter(Boolean)
     .join(' ');
 

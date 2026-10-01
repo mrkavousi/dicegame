@@ -1,4 +1,5 @@
 import { EVENT_TYPE } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import './TurnScore.css';
 
 /**
@@ -14,32 +15,33 @@ import './TurnScore.css';
  * @param {number} props.bumpKey
  */
 export function TurnScore({ turnScore, lastEvent, bumpKey }) {
+  const { t, n } = useI18n();
   const busted = lastEvent?.type === EVENT_TYPE.BUST && (lastEvent.lostScore ?? 0) > 0;
   const atRisk = turnScore > 0;
 
   return (
     <section className="turn-score" aria-labelledby="turn-score-heading">
       <h2 className="turn-score__heading label" id="turn-score-heading">
-        Current turn
+        {t('board.currentTurn')}
       </h2>
 
       <p
         className="turn-score__value"
         data-state={atRisk ? 'risk' : 'empty'}
         key={`pot-${bumpKey}`}
-        aria-label={`Turn score ${turnScore}`}
+        aria-label={t('turn.aria', { n: turnScore })}
       >
         <span className="turn-score__sign" aria-hidden="true">
           {atRisk ? '+' : ''}
         </span>
-        <span aria-hidden="true">{turnScore}</span>
+        <span aria-hidden="true">{n(turnScore)}</span>
       </p>
 
-      <p className="turn-score__hint">{atRisk ? 'At risk — bank it to keep it' : 'Nothing at risk yet'}</p>
+      <p className="turn-score__hint">{atRisk ? t('turn.risk') : t('turn.safe')}</p>
 
       {busted ? (
         <span className="turn-score__ghost" key={`lost-${lastEvent.id}`} aria-hidden="true">
-          −{lastEvent.lostScore}
+          −{n(lastEvent.lostScore)}
         </span>
       ) : null}
     </section>

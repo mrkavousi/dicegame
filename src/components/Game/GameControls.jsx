@@ -1,4 +1,5 @@
 import { WINNING_SCORE } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { Button } from '../UI/Button.jsx';
 import { DiceIcon } from '../UI/icons.jsx';
 import './GameControls.css';
@@ -37,15 +38,16 @@ export function GameControls({
   onRoll,
   onBank,
 }) {
+  const { t } = useI18n();
   const wouldWin = score + turnScore >= targetScore && turnScore > 0;
 
-  let hint = 'Roll the die to build your pot.';
-  if (isRolling) hint = 'Rolling…';
-  else if (isSwitching) hint = 'Next player is up…';
-  else if (botName) hint = `${botName} is thinking…`;
-  else if (wouldWin) hint = `Bank now to win the game!`;
-  else if (turnScore >= TEMPTING_POT) hint = `${turnScore} points on the line — bank to keep them.`;
-  else if (turnScore > 0) hint = `Bank to keep your ${turnScore} points, or push your luck.`;
+  let hint = t('controls.hintIdle');
+  if (isRolling) hint = t('controls.hintRolling');
+  else if (isSwitching) hint = t('controls.hintSwitching');
+  else if (botName) hint = t('controls.hintBot', { name: botName });
+  else if (wouldWin) hint = t('controls.hintWin');
+  else if (turnScore >= TEMPTING_POT) hint = t('controls.hintTempting', { n: turnScore });
+  else if (turnScore > 0) hint = t('controls.hintPot', { n: turnScore });
 
   return (
     <div className="controls">
@@ -57,9 +59,9 @@ export function GameControls({
         disabled={!canRoll}
         icon={<DiceIcon />}
         shortcut="R"
-        aria-label="Roll dice"
+        aria-label={t('controls.roll')}
       >
-        Roll dice
+        {t('controls.roll')}
       </Button>
 
       <Button
@@ -70,14 +72,14 @@ export function GameControls({
         disabled={!canBank}
         pulse={canBank && turnScore >= TEMPTING_POT}
         shortcut="B"
-        aria-label={`Bank points${turnScore > 0 ? `, ${turnScore} points` : ''}`}
+        aria-label={turnScore > 0 ? t('controls.bankAria', { n: turnScore }) : t('controls.bank')}
       >
-        {wouldWin ? 'Bank & win' : 'Bank points'}
+        {wouldWin ? t('controls.bankWin') : t('controls.bank')}
       </Button>
 
       {canUndo ? (
-        <Button variant="ghost" onClick={onUndo} shortcut="U" aria-label="Undo last bank">
-          Undo bank
+        <Button variant="ghost" onClick={onUndo} shortcut="U" aria-label={t('controls.undoAria')}>
+          {t('controls.undo')}
         </Button>
       ) : null}
 

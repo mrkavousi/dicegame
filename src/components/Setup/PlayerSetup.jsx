@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  BOT_NAMES,
   DIFFICULTY,
   MAX_NAME_LENGTH,
   MAX_PLAYERS,
@@ -9,23 +8,11 @@ import {
   SERIES_LENGTHS,
   VARIANT,
 } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { Button } from '../UI/Button.jsx';
 import './PlayerSetup.css';
 
 const PLAYER_COUNTS = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => MIN_PLAYERS + i);
-
-const SERIES_LABELS = { 1: 'Single game', 3: 'Best of 3', 5: 'Best of 5' };
-
-const VARIANTS = [
-  { value: VARIANT.CLASSIC, label: 'Classic' },
-  { value: VARIANT.TWO_DICE, label: 'Two dice' },
-];
-
-/** Who sits in each seat. The empty value is a human. */
-const SEAT_TYPES = [
-  { value: '', label: 'Human' },
-  ...Object.values(DIFFICULTY).map((level) => ({ value: level, label: BOT_NAMES[level] })),
-];
 
 /** A row of radio "chips" — native inputs, so keyboard and screen readers just work. */
 function ChoiceGroup({ legend, name, options, value, onChange }) {
@@ -61,12 +48,23 @@ function ChoiceGroup({ legend, name, options, value, onChange }) {
  * @param {(names: string[], config: object) => void} props.onStart
  */
 export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart }) {
+  const { t, n } = useI18n();
   const [names, setNames] = useState(() => Array.from({ length: MAX_PLAYERS }, (_, i) => initialNames[i] ?? ''));
 
   const update = (index) => (event) => {
     const value = event.target.value;
     setNames((current) => current.map((name, i) => (i === index ? value : name)));
   };
+
+  const variants = [
+    { value: VARIANT.CLASSIC, label: t('variant.classic') },
+    { value: VARIANT.TWO_DICE, label: t('variant.twoDice') },
+  ];
+  /** Who sits in each seat. The empty value is a human. */
+  const seatTypes = [
+    { value: '', label: t('setup.human') },
+    ...Object.values(DIFFICULTY).map((level) => ({ value: level, label: t(`bot.${level}`) })),
+  ];
 
   const setOption = (key) => (value) => onConfigChange({ ...config, [key]: value });
 
@@ -84,26 +82,26 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
   return (
     <form className="setup" onSubmit={submit} aria-labelledby="setup-heading">
       <h2 className="setup__heading label" id="setup-heading">
-        Who is playing?
+        {t('setup.heading')}
       </h2>
 
       <div className="setup__fields">
         {names.slice(0, config.playerCount).map((name, index) => {
           const bot = config.bots?.[index] ?? null;
-          const fallback = bot ? BOT_NAMES[bot] : `Player ${index + 1}`;
+          const fallback = bot ? t(`bot.${bot}`) : t('player.default', { n: index + 1 });
           return (
             <div className={`setup__field setup__field--p${index + 1}`} key={index}>
               <div className="setup__row">
                 <label className="setup__label label" htmlFor={`player-${index + 1}-name`}>
-                  Player {index + 1}
+                  {t('player.label', { n: index + 1 })}
                 </label>
                 <select
                   className="setup__seat"
-                  aria-label={`Player ${index + 1} type`}
+                  aria-label={t('setup.type', { n: index + 1 })}
                   value={bot ?? ''}
                   onChange={setSeat(index)}
                 >
-                  {SEAT_TYPES.map((option) => (
+                  {seatTypes.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -112,7 +110,7 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
               </div>
               <div className="setup__control">
                 <span className="setup__avatar" aria-hidden="true">
-                  {(name.trim().charAt(0) || String(index + 1)).toUpperCase()}
+                  {(name.trim().charAt(0) || n(index + 1)).toUpperCase()}
                 </span>
                 <input
                   id={`player-${index + 1}-name`}
@@ -132,7 +130,7 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
                 />
               </div>
               <p className="setup__hint" id={`player-${index + 1}-hint`}>
-                Leave empty to use “{fallback}”.
+                {t('setup.hint', { name: fallback })}
               </p>
             </div>
           );
@@ -141,37 +139,40 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
 
       <div className="setup__options">
         <ChoiceGroup
-          legend="Players"
+          legend={t('setup.players')}
           name="player-count"
-          options={PLAYER_COUNTS.map((count) => ({ value: count, label: String(count) }))}
+          options={PLAYER_COUNTS.map((count) => ({ value: count, label: n(count) }))}
           value={config.playerCount}
           onChange={setOption('playerCount')}
         />
         <ChoiceGroup
-          legend="Play to"
+          legend={t('setup.playTo')}
           name="target-score"
-          options={TARGET_SCORES.map((score) => ({ value: score, label: String(score) }))}
+          options={TARGET_SCORES.map((score) => ({ value: score, label: n(score) }))}
           value={config.targetScore}
           onChange={setOption('targetScore')}
         />
         <ChoiceGroup
-          legend="Variant"
+          legend={t('setup.variant')}
           name="variant"
-          options={VARIANTS}
+          options={variants}
           value={config.variant}
           onChange={setOption('variant')}
         />
         <ChoiceGroup
-          legend="Match"
+          legend={t('setup.match')}
           name="series-length"
-          options={SERIES_LENGTHS.map((length) => ({ value: length, label: SERIES_LABELS[length] }))}
+          options={SERIES_LENGTHS.map((length) => ({
+            value: length,
+            label: length === 1 ? t('series.single') : t('series.bestOf', { n: length }),
+          }))}
           value={config.seriesLength ?? 1}
           onChange={setOption('seriesLength')}
         />
       </div>
 
       <Button type="submit" variant="primary" size="lg" block>
-        Start game
+        {t('setup.start')}
       </Button>
     </form>
   );

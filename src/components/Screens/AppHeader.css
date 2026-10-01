@@ -76,3 +76,10 @@
     padding-inline: var(--space-6);
   }
 }
+
+.app-header__lang {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  line-height: 1;
+}

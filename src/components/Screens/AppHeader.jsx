@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/index.jsx';
 import { IconButton } from '../UI/IconButton.jsx';
 import { ChartIcon, DiceIcon, RestartIcon, SoundOffIcon, SoundOnIcon } from '../UI/icons.jsx';
 import './AppHeader.css';
@@ -13,6 +14,7 @@ import './AppHeader.css';
  * @param {() => void} [props.onShowStats]
  */
 export function AppHeader({ muted, onToggleMute, onRestart, onShowStats, targetScore = 100, showRestart = true }) {
+  const { t, toggleLang } = useI18n();
   return (
     <header className="app-header">
       <div className="app-header__inner">
@@ -21,18 +23,23 @@ export function AppHeader({ muted, onToggleMute, onRestart, onShowStats, targetS
             <DiceIcon />
           </span>
           <span className="app-header__name">Pig</span>
-          <span className="app-header__tag">first to {targetScore}</span>
+          <span className="app-header__tag">{t('header.tag', { target: targetScore })}</span>
         </p>
 
         <div className="app-header__actions">
-          {onShowStats ? <IconButton label="Show stats" onClick={onShowStats} icon={<ChartIcon />} /> : null}
+          {onShowStats ? <IconButton label={t('header.stats')} onClick={onShowStats} icon={<ChartIcon />} /> : null}
           <IconButton
-            label={muted ? 'Turn sound on' : 'Turn sound off'}
+            label={t('lang.switch')}
+            onClick={toggleLang}
+            icon={<span className="app-header__lang">{t('lang.button')}</span>}
+          />
+          <IconButton
+            label={muted ? t('header.soundOn') : t('header.soundOff')}
             active={muted}
             onClick={onToggleMute}
             icon={muted ? <SoundOffIcon /> : <SoundOnIcon />}
           />
-          {showRestart ? <IconButton label="Start a new game" onClick={onRestart} icon={<RestartIcon />} /> : null}
+          {showRestart ? <IconButton label={t('header.newGame')} onClick={onRestart} icon={<RestartIcon />} /> : null}
         </div>
       </div>
     </header>

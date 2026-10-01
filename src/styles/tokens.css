@@ -265,3 +265,11 @@ body.is-night {
     --dur-roll: 120ms;
   }
 }
+
+/* Persian: use Vazirmatn first, and never letter-space (it breaks Arabic-script joining). */
+html[lang='fa'] {
+  --font-display: 'Vazirmatn', 'Baloo 2', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Vazirmatn', 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --tracking-wide: 0;
+  --tracking-label: 0;
+}

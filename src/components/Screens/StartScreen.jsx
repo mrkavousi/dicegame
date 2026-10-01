@@ -1,22 +1,19 @@
 import { useState } from 'react';
 import { DICE_MOOD, usesTwoDice } from '../../utils/gameLogic.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { Dice } from '../Game/Dice.jsx';
 import { PlayerSetup } from '../Setup/PlayerSetup.jsx';
 import { KeyboardIcon } from '../UI/icons.jsx';
 import './StartScreen.css';
 
 /** The three rules, worded for the current settings. */
-function buildRules(config) {
+function buildRules(config, t) {
   const twoDice = usesTwoDice(config);
-  const next = config.playerCount === 2 ? 'your opponent' : 'the next player';
+  const who = config.playerCount === 2 ? 'opponent' : 'next';
   return [
-    twoDice
-      ? 'Roll two dice as often as you like. Every roll adds both dice to your pot.'
-      : 'Roll as often as you like. Every roll adds to your pot.',
-    twoDice
-      ? `Roll a single 1 and your pot is gone. Roll two 1s and your whole score is wiped — the turn passes to ${next}.`
-      : `Roll a 1 and your pot is gone — the turn passes to ${next}.`,
-    `Bank at any time to keep your points. First to ${config.targetScore} wins.`,
+    t(twoDice ? 'start.rule1.two' : 'start.rule1'),
+    t(twoDice ? `start.rule2.two.${who}` : `start.rule2.${who}`),
+    t('start.rule3', { target: config.targetScore }),
   ];
 }
 
@@ -30,19 +27,21 @@ function buildRules(config) {
  */
 export function StartScreen({ onStart, initialConfig }) {
   const [config, setConfig] = useState(initialConfig);
-  const rules = buildRules(config);
+  const { t, n } = useI18n();
+  const rules = buildRules(config, t);
 
   return (
     <div className="start">
       <section className="start__hero" aria-labelledby="start-title">
         <Dice value={5} mood={DICE_MOOD.IDLE} />
         <h1 className="start__title" id="start-title">
-          Pig
+          {t('start.title')}
         </h1>
-        <p className="start__tagline">Roll. Risk. Win.</p>
+        <p className="start__tagline">{t('start.tagline')}</p>
         <p className="start__lede">
-          First to <strong>{config.targetScore} points</strong> wins — but a single 1 wipes out everything you rolled
-          this turn.
+          {t('start.ledeBefore')}
+          <strong>{t('start.ledeStrong', { target: config.targetScore })}</strong>
+          {t('start.ledeAfter')}
         </p>
       </section>
 
@@ -50,13 +49,13 @@ export function StartScreen({ onStart, initialConfig }) {
 
       <section className="start__rules" aria-labelledby="rules-heading">
         <h2 className="start__rules-title label" id="rules-heading">
-          How to play
+          {t('start.rulesTitle')}
         </h2>
         <ol className="start__rules-list">
           {rules.map((rule, index) => (
             <li className="start__rule" key={rule}>
               <span className="start__rule-number" aria-hidden="true">
-                {index + 1}
+                {n(index + 1)}
               </span>
               <span className="start__rule-text">{rule}</span>
             </li>
@@ -67,7 +66,8 @@ export function StartScreen({ onStart, initialConfig }) {
       <p className="start__shortcuts">
         <KeyboardIcon />
         <span>
-          Keyboard: <kbd>R</kbd> roll · <kbd>B</kbd> bank · <kbd>M</kbd> mute
+          {t('start.keyboard')} <kbd>R</kbd> {t('key.roll')} · <kbd>B</kbd> {t('key.bank')} · <kbd>U</kbd>{' '}
+          {t('key.undo')} · <kbd>M</kbd> {t('key.mute')}
         </span>
       </p>
     </div>

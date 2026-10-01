@@ -32,6 +32,27 @@ Requires **Node 18+**.
 
 ---
 
+## Languages (English · فارسی)
+
+The header button (**فا** / **EN**) switches the whole interface between
+English (LTR) and Persian (RTL). The choice is saved (`pig.lang.v1`); on a first
+visit a Persian browser locale starts the game in Persian.
+
+* All text lives in `src/i18n/en.js` and `src/i18n/fa.js` (flat keys, `{placeholders}`).
+  `useI18n()` returns `t(key, params)` and `n(number)`; numbers show as Persian
+  digits (۱۲۳) in `fa`. Without a provider the hooks fall back to English.
+* `<html lang dir>` is updated, the CSS uses logical properties (so layouts
+  mirror), Vazirmatn leads the font stack and letter-spacing is disabled
+  (it breaks Arabic-script joining).
+* Blank player names get a default in the active language ("بازیکن ۲", "ربات · سخت").
+  Names already chosen are never translated.
+* Keyboard shortcuts use the physical key (`event.code`), so `R` / `B` / `U` / `M`
+  work on a Persian keyboard layout too.
+* Adding a language = a new dictionary + an entry in `LANGUAGES`; a test enforces
+  that every language has the same keys and placeholders.
+
+---
+
 ## Game rules
 
 | # | Rule |
@@ -139,6 +160,7 @@ src/
 │       ├── Modal.jsx          # focus-trapped confirm dialog
 │       ├── Notice.jsx         # transient feedback banner (live region)
 │       └── icons.jsx          # inline SVG icon set (no external assets)
+├── i18n/                      # en.js / fa.js dictionaries + I18nProvider, useI18n (t, n)
 ├── hooks/
 │   ├── useGame.js             # the only orchestrator: state, timing, sound, lock
 │   ├── useSound.jsx           # SoundProvider + mute state
@@ -160,6 +182,8 @@ tests/
 ├── gameLogic.test.js          # 45 rules/anti-bug/persistence tests
 ├── settings.test.js           # 14 config / target score / N-player / two-dice engine tests
 ├── settings.test.jsx          # 4 settings-screen UI flow tests
+├── i18n.test.js               # 8 dictionary-parity + translator tests
+├── i18n.test.jsx              # 6 language-switch / RTL / Persian-play UI tests
 ├── bot.test.js                # 12 bot config + strategy tests
 ├── bot.test.jsx               # 4 end-to-end computer-turn tests
 ├── series.test.js             # 11 series + lifetime-stats engine tests
@@ -357,7 +381,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-132 tests across nine files, all deterministic (the die is injected, never random):
+146 tests across eleven files, all deterministic (the die is injected, never random):
 
 * **`tests/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -377,6 +401,10 @@ npm test
 * **`tests/series.test.js` / `.jsx`** — best-of-N bookkeeping (wins, next game,
   starting-seat rotation, legacy-save upgrade), stats aggregation and the
   leaderboard, plus the undo button/key and the stats modal through the real UI.
+* **`tests/i18n.test.js` / `.jsx`** — Persian and English dictionaries have identical
+  keys and placeholders, number formatting, fallbacks, the language toggle
+  (`lang`/`dir`, persistence) and a game played in Persian, including shortcuts
+  from a Persian keyboard layout.
 * **`tests/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

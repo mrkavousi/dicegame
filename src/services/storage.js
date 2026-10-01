@@ -15,6 +15,7 @@ const GAME_KEY = 'pig.game.v1';
 const SETTINGS_KEY = 'pig.settings.v1';
 const CONFIG_KEY = 'pig.config.v1';
 const STATS_KEY = 'pig.stats.v1';
+const LANG_KEY = 'pig.lang.v1';
 
 /** localStorage may be missing (SSR / tests) or throw (private mode). */
 function getStore() {
@@ -80,6 +81,29 @@ export function clearGame() {
   if (!store) return;
   try {
     store.removeItem(GAME_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** @returns {'en'|'fa'|null} the saved interface language, if any */
+export function loadLanguage() {
+  const store = getStore();
+  if (!store) return null;
+  try {
+    const value = store.getItem(LANG_KEY);
+    return value === 'en' || value === 'fa' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/** @param {'en'|'fa'} lang */
+export function saveLanguage(lang) {
+  const store = getStore();
+  if (!store) return;
+  try {
+    store.setItem(LANG_KEY, lang);
   } catch {
     /* ignore */
   }

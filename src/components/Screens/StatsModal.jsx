@@ -1,4 +1,5 @@
 import { leaderboard } from '../../utils/stats.js';
+import { useI18n } from '../../i18n/index.jsx';
 import { Modal } from '../UI/Modal.jsx';
 import './StatsModal.css';
 
@@ -12,17 +13,18 @@ import './StatsModal.css';
  * @param {() => void} props.onReset
  */
 export function StatsModal({ open, stats, onClose, onReset }) {
+  const { t, n } = useI18n();
   const rows = leaderboard(stats);
 
   return (
     <Modal
       open={open}
-      title="Lifetime stats"
-      description={rows.length === 0 ? 'No finished games yet — play one to start the leaderboard.' : undefined}
+      title={t('stats.title')}
+      description={rows.length === 0 ? t('stats.empty') : undefined}
       onClose={onClose}
       actions={[
-        { label: 'Close', variant: 'secondary', onClick: onClose, autofocus: true },
-        ...(rows.length > 0 ? [{ label: 'Reset stats', variant: 'danger', onClick: onReset }] : []),
+        { label: t('stats.close'), variant: 'secondary', onClick: onClose, autofocus: true },
+        ...(rows.length > 0 ? [{ label: t('stats.reset'), variant: 'danger', onClick: onReset }] : []),
       ]}
     >
       {rows.length > 0 ? (
@@ -30,21 +32,21 @@ export function StatsModal({ open, stats, onClose, onReset }) {
           <table className="stats">
             <thead>
               <tr>
-                <th scope="col">Player</th>
-                <th scope="col">Wins</th>
-                <th scope="col">Games</th>
-                <th scope="col">Busts</th>
-                <th scope="col">Best turn</th>
+                <th scope="col">{t('stats.player')}</th>
+                <th scope="col">{t('stats.wins')}</th>
+                <th scope="col">{t('stats.games')}</th>
+                <th scope="col">{t('stats.busts')}</th>
+                <th scope="col">{t('stats.best')}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.name}>
                   <th scope="row">{row.name}</th>
-                  <td>{row.wins}</td>
-                  <td>{row.games}</td>
-                  <td>{row.rolls > 0 ? `${Math.round((row.busts / row.rolls) * 100)}%` : '–'}</td>
-                  <td>{row.bestTurn}</td>
+                  <td>{n(row.wins)}</td>
+                  <td>{n(row.games)}</td>
+                  <td>{row.rolls > 0 ? `${n(Math.round((row.busts / row.rolls) * 100))}%` : '–'}</td>
+                  <td>{n(row.bestTurn)}</td>
                 </tr>
               ))}
             </tbody>

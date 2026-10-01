@@ -37,6 +37,7 @@ import {
   settleTurn,
   toSetup,
 } from '../utils/gameLogic.js';
+import { useI18n } from '../i18n/index.jsx';
 import { MOVE, decideMove } from '../utils/bot.js';
 import { clearGame, loadConfig, loadGame, loadStats, saveConfig, saveGame, saveStats } from '../services/storage.js';
 import { emptyStats, recordGame } from '../utils/stats.js';
@@ -95,6 +96,7 @@ export function useGame({ storage = true } = {}) {
   const [undoSnapshot, setUndoSnapshot] = useState(null);
   const [winnerRevealed, setWinnerRevealed] = useState(() => state.status === GAME_STATUS.WON);
   const { play, muted, toggleMuted, soundEnabled } = useSound();
+  const { t } = useI18n();
 
   // ---- refs ----------------------------------------------------------------
   const stateRef = useRef(state);
@@ -177,7 +179,10 @@ export function useGame({ storage = true } = {}) {
     if (!resumedRef.current) return;
     resumedRef.current = false;
     if (stateRef.current.status === GAME_STATUS.PLAYING) {
-      showNotice({ tone: NOTICE_TONE.INFO, title: 'GAME RESTORED', lines: ['Welcome back'] }, { duration: 2400 });
+      showNotice(
+        { tone: NOTICE_TONE.INFO, title: t('notice.restored'), lines: [t('notice.welcomeBack')] },
+        { duration: 2400 },
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -194,12 +199,19 @@ export function useGame({ storage = true } = {}) {
       dismissNotice();
       setWinnerRevealed(false);
       setUndoSnapshot(null);
-      const next = createGame({ playerNames: names, status: GAME_STATUS.PLAYING, config: rules });
+      // Blank names get a default in the active language ("Player 2", "بازیکن ۲", "Bot · Hard"…).
+      const named = Array.from({ length: rules.playerCount }, (_, index) => {
+        const typed = typeof names[index] === 'string' ? names[index].trim() : '';
+        if (typed) return typed;
+        const bot = rules.bots[index];
+        return bot ? t(`bot.${bot}`) : t('player.default', { n: index + 1 });
+      });
+      const next = createGame({ playerNames: named, status: GAME_STATUS.PLAYING, config: rules });
       stateRef.current = next;
       setState(next);
       clearGame();
     },
-    [clearTimers, dismissNotice, storage],
+    [clearTimers, dismissNotice, storage, t],
   );
 
   /** Roll the die. Resolves after the tumble animation has committed. */
@@ -230,12 +242,12 @@ export function useGame({ storage = true } = {}) {
           showNotice(
             {
               tone: NOTICE_TONE.BUST,
-              title: wiped ? 'SNAKE EYES!' : 'OH NO!',
+              title: t(wiped ? 'notice.snake' : 'notice.bust'),
               lines: [
-                wiped ? `${loser.name} rolled two 1s` : `${loser.name} rolled a 1`,
-                lost > 0 ? `−${lost} points lost` : 'No points lost',
+                t(wiped ? 'notice.rolledTwo' : 'notice.rolledOne', { name: loser.name }),
+                lost > 0 ? t('notice.lost', { n: lost }) : t('notice.noneLost'),
               ],
-              turnLine: `${nextName}'s turn`,
+              turnLine: t('notice.turn', { name: nextName }),
             },
             { duration: TIMINGS.bust + 650 },
           );
@@ -245,7 +257,7 @@ export function useGame({ storage = true } = {}) {
       },
       reducedMotion ? TIMINGS.rollReduced : TIMINGS.roll,
     );
-  }, [play, reducedMotion, schedule, showNotice]);
+  }, [play, reducedMotion, schedule, showNotice, t]);
 
   /** Bank the pot: secure the points and end the turn (or win). */
   const performBank = useCallback(() => {
@@ -277,14 +289,14 @@ export function useGame({ storage = true } = {}) {
 
     showNotice({
       tone: NOTICE_TONE.BANK,
-      title: `+${amount} SECURED`,
-      lines: [player.name, `Total ${total}`],
-      turnLine: `${next.players[next.currentPlayer].name}'s turn`,
+      title: t('notice.secured', { n: amount }),
+      lines: [player.name, t('notice.total', { n: total })],
+      turnLine: t('notice.turn', { name: next.players[next.currentPlayer].name }),
     });
 
     // Short beat so the secured points are seen, then the next player may act.
     schedule(() => setState((previous) => settleTurn(previous)), TIMINGS.bankPause);
-  }, [play, schedule, showNotice, storage]);
+  }, [play, schedule, showNotice, storage, t]);
 
   // Human-facing actions: the computer's seat cannot be driven from the keyboard or buttons.
   const roll = useCallback(() => {
@@ -398,7 +410,8 @@ export function useGame({ storage = true } = {}) {
       const target = event.target;
       if (target instanceof Element && target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
-      const key = event.key.toLowerCase();
+      // Prefer the physical key so the shortcuts also work on a Persian keyboard layout.
+      const key = /^Key[A-Z]$/.test(event.code) ? event.code.slice(3).toLowerCase() : event.key.toLowerCase();
       if (key === 'm') {
         toggleMuted();
         return;

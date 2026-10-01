@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { VIEW, useGame } from './hooks/useGame.js';
+import { I18nProvider, useI18n } from './i18n/index.jsx';
 import { AppHeader } from './components/Screens/AppHeader.jsx';
 import { StartScreen } from './components/Screens/StartScreen.jsx';
 import { WinnerScreen } from './components/Screens/WinnerScreen.jsx';
@@ -13,7 +14,8 @@ import { StatsModal } from './components/Screens/StatsModal.jsx';
  * setup → game → winner. The rules and timing live in `useGame`; this component
  * only decides which screen is on stage and handles the "abandon game?" confirm.
  */
-export default function App() {
+function AppShell() {
+  const { t } = useI18n();
   const game = useGame();
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -82,19 +84,28 @@ export default function App() {
 
       <Modal
         open={confirmRestart}
-        title="Start a new game?"
-        description="This match will be abandoned. Scores cannot be recovered."
+        title={t('confirm.title')}
+        description={t('confirm.body')}
         onClose={() => setConfirmRestart(false)}
         actions={[
           {
-            label: 'Keep playing',
+            label: t('confirm.keep'),
             variant: 'secondary',
             onClick: () => setConfirmRestart(false),
             autofocus: true,
           },
-          { label: 'New game', variant: 'danger', onClick: confirmAndRestart },
+          { label: t('confirm.new'), variant: 'danger', onClick: confirmAndRestart },
         ]}
       />
     </div>
+  );
+}
+
+/** The app, wrapped in the language provider (English / Persian, LTR / RTL). */
+export default function App() {
+  return (
+    <I18nProvider>
+      <AppShell />
+    </I18nProvider>
   );
 }
