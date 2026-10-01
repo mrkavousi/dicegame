@@ -1,7 +1,8 @@
 # PIG 🎲 — Roll. Risk. Win.
 
-A fast, polished **two-player local-multiplayer dice game** for the browser.
-Roll as often as you dare, bank before the 1 shows up, first to **100 points** wins.
+A fast, polished **local-multiplayer dice game** (2–4 players) for the browser.
+Roll as often as you dare, bank before the 1 shows up, first to **100 points** wins
+(or 50 / 150 / 200 — you choose).
 
 Built mobile-first with React + Vite, a fully separated rules engine, and a
 chunky, flat, playful visual language driven by design tokens.
@@ -35,11 +36,25 @@ Requires **Node 18+**.
 
 | # | Rule |
 |---|------|
-| 1 | Two players share one six-sided die and take turns. |
+| 1 | 2–4 players share one six-sided die and take turns. |
 | 2 | On your turn, roll as many times as you like. Each roll adds to your **turn score** (the pot). |
 | 3 | Press **BANK** at any time to move the pot into your **total score**. The turn then passes to the other player. |
-| 4 | Roll a **1** and the pot is gone, the turn ends immediately and your opponent is up. |
-| 5 | The first player to reach **100** points wins. |
+| 4 | Roll a **1** and the pot is gone, the turn ends immediately and the next player is up. |
+| 5 | The first player to reach the **target score** (default **100**) wins. |
+
+### Game settings
+
+Chosen on the start screen and remembered between visits (`pig.config.v1`).
+
+| Setting | Options |
+|---------|---------|
+| Players | 2, 3 or 4 |
+| Play to | 50, 100, 150 or 200 points |
+| Variant | **Classic** (one die) or **Two dice** |
+
+**Two-dice variant:** each roll uses two dice. Both dice are added to the pot,
+except: a single **1** burns the pot (turn ends), and **two 1s** ("snake eyes")
+wipe the pot *and* your whole total score.
 
 **Example — Alex's turn:** rolls 5, then 4, then 6 → pot = 15.
 Banking scores 15 and hands over the turn. Rolling once more and hitting a 1
@@ -102,6 +117,8 @@ src/
 └── App.jsx                    # shell + view routing
 tests/
 ├── gameLogic.test.js          # 45 rules/anti-bug/persistence tests
+├── settings.test.js           # 14 config / target score / N-player / two-dice engine tests
+├── settings.test.jsx          # 4 settings-screen UI flow tests
 ├── App.test.jsx               # 22 end-to-end flow tests through the real UI
 ├── Dice.test.jsx              # 11 die rendering/a11y tests
 └── setup.js                   # jsdom environment shims
@@ -294,7 +311,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-78 tests across three files, all deterministic (the die is injected, never random):
+96 tests across five files, all deterministic (the die is injected, never random):
 
 * **`tests/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -304,6 +321,10 @@ npm test
   die: setup → rolls → bank hand-over → bust → win → play again → main menu,
   double-click protection, input locking, keyboard shortcuts, persistence,
   resume-on-refresh and the abandon-match confirm dialog.
+* **`tests/settings.test.js` / `.jsx`** — game settings: config normalisation,
+  custom target scores, 3-player turn rotation, the two-dice rules (including
+  snake eyes), save/restore of the config (and legacy saves without one), and the
+  start-screen controls end to end.
 * **`tests/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

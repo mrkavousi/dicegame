@@ -8,10 +8,11 @@
  * ============================================================================
  */
 
-import { GAME_STATUS, restoreGame } from '../utils/gameLogic.js';
+import { GAME_STATUS, normalizeConfig, restoreGame } from '../utils/gameLogic.js';
 
 const GAME_KEY = 'pig.game.v1';
 const SETTINGS_KEY = 'pig.settings.v1';
+const CONFIG_KEY = 'pig.config.v1';
 
 /** localStorage may be missing (SSR / tests) or throw (private mode). */
 function getStore() {
@@ -77,6 +78,32 @@ export function clearGame() {
   if (!store) return;
   try {
     store.removeItem(GAME_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * The last-used game settings (target score, players, variant).
+ * @returns {import('../utils/gameLogic.js').GameConfig}
+ */
+export function loadConfig() {
+  const store = getStore();
+  if (!store) return normalizeConfig();
+  try {
+    const raw = store.getItem(CONFIG_KEY);
+    return normalizeConfig(raw ? JSON.parse(raw) : undefined);
+  } catch {
+    return normalizeConfig();
+  }
+}
+
+/** @param {import('../utils/gameLogic.js').GameConfig} config */
+export function saveConfig(config) {
+  const store = getStore();
+  if (!store) return;
+  try {
+    store.setItem(CONFIG_KEY, JSON.stringify(normalizeConfig(config)));
   } catch {
     /* ignore */
   }

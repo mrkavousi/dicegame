@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EVENT_TYPE, GAME_STATUS } from '../../utils/gameLogic.js';
+import { EVENT_TYPE, GAME_STATUS, usesTwoDice } from '../../utils/gameLogic.js';
 import { Notice } from '../UI/Notice.jsx';
 import { Dice } from './Dice.jsx';
 import { PlayerCard } from './PlayerCard.jsx';
@@ -20,7 +20,10 @@ export function GameBoard({ game }) {
     players,
     currentPlayerIndex,
     turnScore,
+    config,
+    targetScore,
     diceValue,
+    diceValues,
     diceMood,
     rollCount,
     isRolling,
@@ -36,9 +39,11 @@ export function GameBoard({ game }) {
 
   const current = players[currentPlayerIndex];
   const leaderIndex = useMemo(() => {
-    if (players[0].score === players[1].score) return -1;
-    return players[0].score > players[1].score ? 0 : 1;
+    const top = Math.max(...players.map((player) => player.score));
+    const leaders = players.filter((player) => player.score === top);
+    return leaders.length === 1 ? leaders[0].index : -1;
   }, [players]);
+  const diceFaces = usesTwoDice(config) ? [diceValues?.[0] ?? null, diceValues?.[1] ?? null] : [diceValue];
 
   // One polite announcement per committed event — screen readers get the same
   // information sighted players read from the die and the pot.
@@ -46,11 +51,13 @@ export function GameBoard({ game }) {
     if (!lastEvent) return '';
     switch (lastEvent.type) {
       case EVENT_TYPE.BUST:
-        return `${lastEvent.playerName} rolled a 1. ${lastEvent.lostScore} points lost. Turn passes.`;
+        return lastEvent.snakeEyes
+          ? `${lastEvent.playerName} rolled snake eyes. ${lastEvent.lostScore} points lost. Turn passes.`
+          : `${lastEvent.playerName} rolled a 1. ${lastEvent.lostScore} points lost. Turn passes.`;
       case EVENT_TYPE.BANK:
         return `${lastEvent.playerName} banked ${lastEvent.amount} points. Total score ${lastEvent.totalScore}.`;
       default:
-        return `${lastEvent.playerName} rolled ${lastEvent.value}. Turn score ${lastEvent.turnScore}.`;
+        return `${lastEvent.playerName} rolled ${lastEvent.values?.join(' and ') ?? lastEvent.value}. Turn score ${lastEvent.turnScore}.`;
     }
   }, [lastEvent]);
 
@@ -59,7 +66,7 @@ export function GameBoard({ game }) {
       <Notice notice={notice} />
 
       <div className="board__main">
-        <section className="board__players" aria-label="Players">
+        <section className="board__players" aria-label="Players" data-count={players.length}>
           {players.map((player, index) => (
             <PlayerCard
               key={player.id}
@@ -67,6 +74,7 @@ export function GameBoard({ game }) {
               isActive={index === currentPlayerIndex && !winner}
               isWinner={winner?.index === index}
               isLeader={index === leaderIndex}
+              targetScore={targetScore}
               turnScore={index === currentPlayerIndex ? turnScore : 0}
               bumpKey={`${index}-${player.score}-${rollCount}`}
             />
@@ -79,12 +87,14 @@ export function GameBoard({ game }) {
             key={`turn-${currentPlayerIndex}-${winner ? 'w' : ''}`}
           >
             <span className="board__turn-dot" aria-hidden="true" />
-            <span className="board__turn-name">
-              {winner ? `${winner.name} wins!` : `${current.name}'s turn`}
-            </span>
+            <span className="board__turn-name">{winner ? `${winner.name} wins!` : `${current.name}'s turn`}</span>
           </p>
 
-          <Dice value={diceValue} mood={diceMood} rolling={isRolling} rollCount={rollCount} />
+          <div className="board__dice">
+            {diceFaces.map((face, index) => (
+              <Dice key={index} value={face} mood={diceMood} rolling={isRolling} rollCount={rollCount} />
+            ))}
+          </div>
 
           <TurnScore turnScore={turnScore} lastEvent={lastEvent} bumpKey={rollCount} />
 
@@ -93,6 +103,7 @@ export function GameBoard({ game }) {
             canBank={canBank}
             turnScore={turnScore}
             score={current.score}
+            targetScore={targetScore}
             isRolling={isRolling}
             isSwitching={game.status === GAME_STATUS.SWITCHING}
             onRoll={roll}

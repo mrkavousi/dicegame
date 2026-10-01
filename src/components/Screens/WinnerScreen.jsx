@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { WINNING_SCORE } from '../../utils/gameLogic.js';
 import { createSeededRandom } from '../../utils/random.js';
 import { Button } from '../UI/Button.jsx';
 import { TrophyIcon } from '../UI/icons.jsx';
@@ -39,11 +38,12 @@ function buildConfetti(count) {
  *
  * @param {object} props
  * @param {object} props.winner
- * @param {object} props.loser
+ * @param {object[]} props.others everyone who did not win
+ * @param {number} props.targetScore
  * @param {() => void} props.onPlayAgain
  * @param {() => void} props.onMainMenu
  */
-export function WinnerScreen({ winner, loser, onPlayAgain, onMainMenu }) {
+export function WinnerScreen({ winner, others, targetScore, onPlayAgain, onMainMenu }) {
   const headingRef = useRef(null);
   const confetti = useMemo(() => buildConfetti(34), []);
 
@@ -88,13 +88,15 @@ export function WinnerScreen({ winner, loser, onPlayAgain, onMainMenu }) {
           <span className="winner__score-label label">points</span>
         </p>
 
-        <p className="winner__loser">
-          <span className={`winner__dot winner__dot--p${loser.index + 1}`} aria-hidden="true" />
-          {loser.name} finished on {loser.score} · {Math.max(0, WINNING_SCORE - loser.score)} to go
-        </p>
+        {others.map((loser) => (
+          <p className="winner__loser" key={loser.id}>
+            <span className={`winner__dot winner__dot--p${loser.index + 1}`} aria-hidden="true" />
+            {loser.name} finished on {loser.score} · {Math.max(0, targetScore - loser.score)} to go
+          </p>
+        ))}
 
         <dl className="winner__stats">
-          {[winner, loser].map((player) => (
+          {[winner, ...others].map((player) => (
             <div className="winner__stat" key={player.id}>
               <dt className="label">{player.name}</dt>
               <dd>

@@ -3,11 +3,15 @@
  * PIG — Game Logic (pure, framework-free, unit-testable)
  * ============================================================================
  *
- * Rules
- *  - Two players, one six-sided die, first to 100 points wins.
+ * Rules (classic)
+ *  - 2–4 players, one six-sided die, first to the target score (default 100) wins.
  *  - Rolling 2–6 adds to the player's *turn score* (the pot).
  *  - BANK moves the pot into the player's total score, then passes the turn.
- *  - Rolling a 1 burns the pot, ends the turn and passes to the other player.
+ *  - Rolling a 1 burns the pot, ends the turn and passes to the next player.
+ *
+ * Two-Dice variant
+ *  - Two dice per roll. Both 1s ("snake eyes") wipe the pot AND the player's
+ *    total score. Exactly one 1 burns the pot. Otherwise the sum joins the pot.
  *
  * Every function here is pure: it takes a state and returns a NEW state.
  * No React, no DOM, no timers, no `Math.random` (RNG is injected). This means
@@ -18,11 +22,35 @@
 
 import { rollDie } from './random.js';
 
-/** Points required to win. */
+/** Default points required to win. */
 export const WINNING_SCORE = 100;
 
-/** Number of players in a local match. */
+/** Default number of players in a local match. */
 export const PLAYER_COUNT = 2;
+
+/** Allowed player counts. */
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 4;
+
+/** Selectable target scores (the engine itself accepts any 20–500). */
+export const TARGET_SCORES = Object.freeze([50, 100, 150, 200]);
+const MIN_TARGET = 20;
+const MAX_TARGET = 500;
+
+/** Rule variants. */
+export const VARIANT = Object.freeze({
+  CLASSIC: 'classic',
+  TWO_DICE: 'twoDice',
+});
+
+/** @typedef {{ targetScore: number, playerCount: number, variant: string }} GameConfig */
+
+/** @type {GameConfig} */
+export const DEFAULT_CONFIG = Object.freeze({
+  targetScore: WINNING_SCORE,
+  playerCount: PLAYER_COUNT,
+  variant: VARIANT.CLASSIC,
+});
 
 /** How many log entries we keep in memory / storage. */
 export const HISTORY_LIMIT = 24;
@@ -54,6 +82,35 @@ const INPUT_STATUSES = [GAME_STATUS.PLAYING];
 
 /** Statuses in which a roll result may be committed to state. */
 const APPLICABLE_ROLL_STATUSES = [GAME_STATUS.PLAYING, GAME_STATUS.ROLLING];
+
+/* -------------------------------------------------------------------------- */
+/* Config                                                                      */
+/* -------------------------------------------------------------------------- */
+
+function clampInt(value, min, max, fallback) {
+  const number = Math.trunc(Number(value));
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
+/**
+ * Build a safe config from untrusted/partial input.
+ * @param {Partial<GameConfig>} [raw]
+ * @returns {GameConfig}
+ */
+export function normalizeConfig(raw) {
+  const input = raw && typeof raw === 'object' ? raw : {};
+  return {
+    targetScore: clampInt(input.targetScore, MIN_TARGET, MAX_TARGET, DEFAULT_CONFIG.targetScore),
+    playerCount: clampInt(input.playerCount, MIN_PLAYERS, MAX_PLAYERS, DEFAULT_CONFIG.playerCount),
+    variant: Object.values(VARIANT).includes(input.variant) ? input.variant : VARIANT.CLASSIC,
+  };
+}
+
+/** Does this config use two dice per roll? */
+export function usesTwoDice(config) {
+  return config?.variant === VARIANT.TWO_DICE;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Players                                                                     */
@@ -95,15 +152,17 @@ export function createPlayer(index, name) {
  * Create a fresh game.
  * @param {{ playerNames?: string[], status?: string, rng?: () => number }} [options]
  */
-export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING } = {}) {
+export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING, config } = {}) {
+  const rules = normalizeConfig(config);
   return {
     status,
-    players: Array.from({ length: PLAYER_COUNT }, (_, index) =>
-      createPlayer(index, playerNames[index]),
-    ),
+    config: rules,
+    players: Array.from({ length: rules.playerCount }, (_, index) => createPlayer(index, playerNames[index])),
     currentPlayer: 0,
     turnScore: 0,
     diceValue: null,
+    /** Both faces of the last roll in the two-dice variant, otherwise null. */
+    diceValues: null,
     /** Increments on every roll — used as an animation trigger key. */
     rollCount: 0,
     /** 1-based turn counter, handy for the UI and for stats. */
@@ -121,9 +180,17 @@ export function getCurrentPlayer(state) {
   return state.players[state.currentPlayer];
 }
 
-/** @param {number} index */
-export function nextPlayerIndex(index) {
-  return (index + 1) % PLAYER_COUNT;
+/**
+ * @param {number} index
+ * @param {number} [count] number of players in the match
+ */
+export function nextPlayerIndex(index, count = PLAYER_COUNT) {
+  return (index + 1) % count;
+}
+
+/** The target score of a game (falls back to the default for legacy states). */
+export function getTargetScore(state) {
+  return state?.config?.targetScore ?? WINNING_SCORE;
 }
 
 /**
@@ -134,7 +201,7 @@ export function checkWinner(state) {
   if (state.winnerIndex !== null && state.winnerIndex !== undefined) {
     return state.players[state.winnerIndex];
   }
-  return state.players.find((player) => player.score >= WINNING_SCORE) ?? null;
+  return state.players.find((player) => player.score >= getTargetScore(state)) ?? null;
 }
 
 /** Can the active player roll right now? (guards double-rolls & post-game rolls) */
@@ -204,7 +271,7 @@ function withEvent(state, entry) {
 function passTurn(state) {
   return {
     ...state,
-    currentPlayer: nextPlayerIndex(state.currentPlayer),
+    currentPlayer: nextPlayerIndex(state.currentPlayer, state.players.length),
     turnScore: 0,
     turnCount: state.turnCount + 1,
   };
@@ -243,32 +310,73 @@ export function setStatus(state, status) {
 /* Actions                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/** Outcome kinds of a roll. */
+export const ROLL_OUTCOME = Object.freeze({
+  ADD: 'add',
+  BUST: 'bust',
+  WIPE: 'wipe', // two-dice snake eyes: pot AND total score are lost
+});
+
+const isFace = (value) => Number.isInteger(value) && value >= 1 && value <= 6;
+
 /**
- * Commit a rolled face to the game state and apply every consequence.
+ * Interpret a roll under a config's rules without touching any state.
+ * @param {GameConfig} config
+ * @param {number|number[]} roll one face (classic) or two faces (two-dice)
+ * @returns {{ faces: number[], kind: string, points: number }|null} null when invalid
+ */
+export function evaluateRoll(config, roll) {
+  if (usesTwoDice(config)) {
+    if (!Array.isArray(roll) || roll.length !== 2 || !roll.every(isFace)) return null;
+    const ones = roll.filter((face) => face === 1).length;
+    if (ones === 2) return { faces: roll, kind: ROLL_OUTCOME.WIPE, points: 0 };
+    if (ones === 1) return { faces: roll, kind: ROLL_OUTCOME.BUST, points: 0 };
+    return { faces: roll, kind: ROLL_OUTCOME.ADD, points: roll[0] + roll[1] };
+  }
+  const face = Array.isArray(roll) ? (roll.length === 1 ? roll[0] : null) : roll;
+  if (!isFace(face)) return null;
+  return face === 1
+    ? { faces: [1], kind: ROLL_OUTCOME.BUST, points: 0 }
+    : { faces: [face], kind: ROLL_OUTCOME.ADD, points: face };
+}
+
+/**
+ * Roll the dice the config calls for (one die, or two for the two-dice variant).
+ * @param {GameConfig} config
+ * @param {() => number} [rng]
+ * @returns {number|number[]}
+ */
+export function rollForConfig(config, rng = Math.random) {
+  return usesTwoDice(config) ? [rollDie(rng), rollDie(rng)] : rollDie(rng);
+}
+
+/**
+ * Commit a roll to the game state and apply every consequence.
  *
  * @param {object} state
- * @param {number} value rolled face (1–6)
+ * @param {number|number[]} roll rolled face (1–6), or two faces in the two-dice variant
  * @returns {object} new state
  */
-export function applyRoll(state, value) {
+export function applyRoll(state, roll) {
   // Anti-bug: never mutate a finished game or commit a roll out of band.
   if (!APPLICABLE_ROLL_STATUSES.includes(state.status)) return state;
-  if (!Number.isInteger(value) || value < 1 || value > 6) return state;
+  const outcome = evaluateRoll(state.config, roll);
+  if (!outcome) return state;
 
   const playerIndex = state.currentPlayer;
   const player = state.players[playerIndex];
-  const rolledOne = value === 1;
+  const isBust = outcome.kind !== ROLL_OUTCOME.ADD;
+  const isWipe = outcome.kind === ROLL_OUTCOME.WIPE;
 
   const players = state.players.map((entry, index) =>
     index === playerIndex
       ? {
           ...entry,
-          bestTurn: rolledOne
-            ? entry.bestTurn
-            : Math.max(entry.bestTurn, state.turnScore + value),
+          score: isWipe ? 0 : entry.score,
+          bestTurn: isBust ? entry.bestTurn : Math.max(entry.bestTurn, state.turnScore + outcome.points),
           stats: {
             rolls: entry.stats.rolls + 1,
-            busts: entry.stats.busts + (rolledOne ? 1 : 0),
+            busts: entry.stats.busts + (isBust ? 1 : 0),
           },
         }
       : entry,
@@ -277,13 +385,14 @@ export function applyRoll(state, value) {
   const base = {
     ...state,
     players,
-    diceValue: value,
+    diceValue: outcome.faces[0],
+    diceValues: outcome.faces.length > 1 ? outcome.faces : null,
     rollCount: state.rollCount + 1,
   };
 
-  // ---- Rolled a 1: burn the pot, hand over the turn --------------------------
-  if (rolledOne) {
-    const lostScore = state.turnScore;
+  // ---- Bust / snake eyes: burn the pot, hand over the turn -------------------
+  if (isBust) {
+    const lostScore = state.turnScore + (isWipe ? player.score : 0);
     // `switching` holds the "OH NO" feedback window; the next player is already
     // marked as active so the UI never shows a turn that has already ended.
     const busted = passTurn({
@@ -291,8 +400,10 @@ export function applyRoll(state, value) {
         type: EVENT_TYPE.BUST,
         playerIndex,
         playerName: player.name,
-        value: 1,
+        value: outcome.faces[0],
+        values: outcome.faces,
         lostScore,
+        snakeEyes: isWipe,
         turnScore: 0,
       }),
       turnScore: 0,
@@ -300,8 +411,8 @@ export function applyRoll(state, value) {
     return { ...busted, status: GAME_STATUS.SWITCHING };
   }
 
-  // ---- Rolled 2–6: grow the pot ---------------------------------------------
-  const turnScore = state.turnScore + value;
+  // ---- Safe roll: grow the pot ---------------------------------------------
+  const turnScore = state.turnScore + outcome.points;
   return withEvent(
     // Settle back to `playing`: the die has landed, the player may act again.
     { ...base, turnScore, status: GAME_STATUS.PLAYING },
@@ -309,19 +420,21 @@ export function applyRoll(state, value) {
       type: EVENT_TYPE.ROLL,
       playerIndex,
       playerName: player.name,
-      value,
+      value: outcome.faces[0],
+      values: outcome.faces,
+      points: outcome.points,
       turnScore,
     },
   );
 }
 
 /**
- * Roll the die and apply the result in one step.
+ * Roll the dice and apply the result in one step.
  * @param {object} state
  * @param {() => number} [rng]
  */
 export function rollDice(state, rng = Math.random) {
-  return applyRoll(state, rollDie(rng));
+  return applyRoll(state, rollForConfig(state.config, rng));
 }
 
 /**
@@ -365,7 +478,7 @@ export function bankScore(state) {
   );
 
   // ---- Winning bank ---------------------------------------------------------
-  if (totalScore >= WINNING_SCORE) {
+  if (totalScore >= getTargetScore(state)) {
     return { ...banked, winnerIndex: playerIndex, status: GAME_STATUS.WON };
   }
 
@@ -380,11 +493,9 @@ export function bankScore(state) {
  * @param {object} state
  * @param {{ keepNames?: boolean, playerNames?: string[], status?: string }} [options]
  */
-export function resetGame(state, { keepNames = true, playerNames, status = GAME_STATUS.PLAYING } = {}) {
-  const names =
-    playerNames ?? (keepNames ? state.players.map((player) => player.name) : []);
-  const next = createGame({ playerNames: names, status });
-  return next;
+export function resetGame(state, { keepNames = true, playerNames, status = GAME_STATUS.PLAYING, config } = {}) {
+  const names = playerNames ?? (keepNames ? state.players.map((player) => player.name) : []);
+  return createGame({ playerNames: names, status, config: config ?? state.config });
 }
 
 /**
@@ -395,6 +506,7 @@ export function toSetup(state) {
   return createGame({
     playerNames: state.players.map((player) => player.name),
     status: GAME_STATUS.SETUP,
+    config: state.config,
   });
 }
 
@@ -413,7 +525,12 @@ export function toSetup(state) {
 export function restoreGame(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const { players, currentPlayer, turnScore, diceValue, status, history, winnerIndex } = raw;
-  if (!Array.isArray(players) || players.length !== PLAYER_COUNT) return null;
+  if (!Array.isArray(players)) return null;
+
+  // Saves from before game settings existed carry no config: infer it.
+  const config = normalizeConfig({ playerCount: players.length, ...raw.config });
+  if (players.length !== config.playerCount) return null;
+  const playerCount = config.playerCount;
 
   const restoredPlayers = players.map((player, index) => ({
     ...createPlayer(index, player?.name),
@@ -434,26 +551,32 @@ export function restoreGame(raw) {
   }
 
   const safeWinner =
-    Number.isInteger(winnerIndex) && winnerIndex >= 0 && winnerIndex < PLAYER_COUNT ? winnerIndex : null;
+    Number.isInteger(winnerIndex) && winnerIndex >= 0 && winnerIndex < playerCount ? winnerIndex : null;
 
   // A stored winner must be consistent with the scores.
-  const winningIndex = restoredPlayers.findIndex((player) => player.score >= WINNING_SCORE);
+  const winningIndex = restoredPlayers.findIndex((player) => player.score >= config.targetScore);
   const finalWinner = safeWinner ?? (winningIndex >= 0 ? winningIndex : null);
 
   if (finalWinner === null && safeStatus === GAME_STATUS.WON) {
     safeStatus = GAME_STATUS.PLAYING; // pointless "won" state — keep playing
   }
 
-  const current = Number.isInteger(currentPlayer)
-    ? Math.min(Math.max(currentPlayer, 0), PLAYER_COUNT - 1)
-    : 0;
+  const current = Number.isInteger(currentPlayer) ? Math.min(Math.max(currentPlayer, 0), playerCount - 1) : 0;
 
   return {
     status: finalWinner !== null ? GAME_STATUS.WON : safeStatus,
+    config,
     players: restoredPlayers,
     currentPlayer: finalWinner !== null ? finalWinner : current,
     turnScore: safeStatus === GAME_STATUS.PLAYING ? clampScore(turnScore) : 0,
     diceValue: Number.isInteger(diceValue) && diceValue >= 1 && diceValue <= 6 ? diceValue : null,
+    diceValues:
+      usesTwoDice(config) &&
+      Array.isArray(raw.diceValues) &&
+      raw.diceValues.length === 2 &&
+      raw.diceValues.every(isFace)
+        ? raw.diceValues
+        : null,
     rollCount: Math.max(0, Math.trunc(Number(raw.rollCount) || 0)),
     turnCount: Math.max(1, Math.trunc(Number(raw.turnCount) || 1)),
     lastEvent: null,
@@ -477,7 +600,7 @@ function clampScore(value) {
 /** Small helpers the UI uses for copy. */
 export function pointsToWin(state) {
   const player = getCurrentPlayer(state);
-  return Math.max(0, WINNING_SCORE - player.score);
+  return Math.max(0, getTargetScore(state) - player.score);
 }
 
 /** Convenience re-export so consumers import rules from one place. */

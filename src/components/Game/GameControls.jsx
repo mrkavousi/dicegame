@@ -16,11 +16,22 @@ const TEMPTING_POT = 20;
  * @param {boolean} props.canBank
  * @param {number} props.turnScore
  * @param {number} props.score current player's total
+ * @param {number} [props.targetScore] points needed to win
  * @param {boolean} props.isRolling
  * @param {boolean} props.isSwitching
  */
-export function GameControls({ canRoll, canBank, turnScore, score, isRolling, isSwitching, onRoll, onBank }) {
-  const wouldWin = score + turnScore >= WINNING_SCORE && turnScore > 0;
+export function GameControls({
+  canRoll,
+  canBank,
+  turnScore,
+  score,
+  targetScore = WINNING_SCORE,
+  isRolling,
+  isSwitching,
+  onRoll,
+  onBank,
+}) {
+  const wouldWin = score + turnScore >= targetScore && turnScore > 0;
 
   let hint = 'Roll the die to build your pot.';
   if (isRolling) hint = 'Rolling…';

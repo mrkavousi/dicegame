@@ -13,10 +13,19 @@ import './PlayerCard.css';
  * @param {boolean} [props.isWinner]
  * @param {boolean} [props.isLeader]
  * @param {number} [props.bumpKey] changes when the total score changes
+ * @param {number} [props.targetScore] points needed to win
  */
-export function PlayerCard({ player, isActive, turnScore = 0, isWinner = false, isLeader = false, bumpKey = 0 }) {
-  const progress = Math.min(100, (player.score / WINNING_SCORE) * 100);
-  const remaining = Math.max(0, WINNING_SCORE - player.score);
+export function PlayerCard({
+  player,
+  isActive,
+  turnScore = 0,
+  isWinner = false,
+  isLeader = false,
+  bumpKey = 0,
+  targetScore = WINNING_SCORE,
+}) {
+  const progress = Math.min(100, (player.score / targetScore) * 100);
+  const remaining = Math.max(0, targetScore - player.score);
   const initial = player.name.trim().charAt(0).toUpperCase() || String(player.index + 1);
 
   const classes = [
@@ -74,14 +83,12 @@ export function PlayerCard({ player, isActive, turnScore = 0, isWinner = false, 
           role="progressbar"
           aria-valuenow={Math.round(player.score)}
           aria-valuemin={0}
-          aria-valuemax={WINNING_SCORE}
+          aria-valuemax={targetScore}
           aria-label={`${remaining} points to win`}
         >
           <span className="player-card__fill" style={{ width: `${progress}%` }} />
         </div>
-        <span className="player-card__remaining label">
-          {isWinner ? 'Winner' : `${remaining} to go`}
-        </span>
+        <span className="player-card__remaining label">{isWinner ? 'Winner' : `${remaining} to go`}</span>
       </div>
     </article>
   );

@@ -144,3 +144,11 @@
     transition: none;
   }
 }
+
+.history__dot--p3 {
+  background: var(--player-3-color);
+}
+
+.history__dot--p4 {
+  background: var(--player-4-color);
+}

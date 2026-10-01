@@ -180,3 +180,34 @@
     padding-block: var(--space-4) var(--space-6);
   }
 }
+
+.board__turn--p3 {
+  border-color: var(--player-3-color);
+  background: var(--player-3-pale);
+  color: var(--player-3-ink);
+}
+
+.board__turn--p3 .board__turn-dot {
+  background: var(--player-3-color);
+}
+
+.board__turn--p4 {
+  border-color: var(--player-4-color);
+  background: var(--player-4-pale);
+  color: var(--player-4-ink);
+}
+
+.board__turn--p4 .board__turn-dot {
+  background: var(--player-4-color);
+}
+
+.board__players[data-count='3'] > :last-child {
+  grid-column: 1 / -1;
+}
+
+.board__dice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}

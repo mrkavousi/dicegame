@@ -87,6 +87,16 @@
   --player-2-pale: var(--blue-100);
   --player-2-ink: var(--navy-800);
 
+  --player-3-color: var(--yellow-400);
+  --player-3-dark: var(--yellow-700);
+  --player-3-pale: #fff4cc;
+  --player-3-ink: #6b4a00;
+
+  --player-4-color: var(--red-500);
+  --player-4-dark: var(--red-700);
+  --player-4-pale: var(--red-100);
+  --player-4-ink: var(--red-ink);
+
   /* Interactive states */
   --color-focus: var(--blue-500);
   --color-disabled-bg: var(--gray-200);

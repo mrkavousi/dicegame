@@ -278,3 +278,17 @@
     font-size: var(--fs-lg);
   }
 }
+
+.player-card--p3 {
+  --pc-color: var(--player-3-color);
+  --pc-dark: var(--player-3-dark);
+  --pc-pale: var(--player-3-pale);
+  --pc-ink: var(--player-3-ink);
+}
+
+.player-card--p4 {
+  --pc-color: var(--player-4-color);
+  --pc-dark: var(--player-4-dark);
+  --pc-pale: var(--player-4-pale);
+  --pc-ink: var(--player-4-ink);
+}

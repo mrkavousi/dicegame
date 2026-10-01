@@ -23,15 +23,19 @@ import {
   canRoll as canRollLogic,
   checkWinner,
   createGame,
+  evaluateRoll,
   getCurrentPlayer,
+  getTargetScore,
   nextPlayerIndex,
+  normalizeConfig,
   resetGame,
+  ROLL_OUTCOME,
+  rollForConfig,
   resolveDiceMood,
   settleTurn,
   toSetup,
 } from '../utils/gameLogic.js';
-import { rollDie } from '../utils/random.js';
-import { clearGame, loadGame, saveGame } from '../services/storage.js';
+import { clearGame, loadConfig, loadGame, saveConfig, saveGame } from '../services/storage.js';
 import { SOUND } from '../services/sound.js';
 import { useSound } from './useSound.jsx';
 
@@ -77,7 +81,7 @@ export function useGame({ storage = true } = {}) {
       const saved = loadGame();
       if (saved) return saved;
     }
-    return createGame({ status: GAME_STATUS.SETUP });
+    return createGame({ status: GAME_STATUS.SETUP, config: storage ? loadConfig() : undefined });
   });
 
   const [notice, setNotice] = useState(null);
@@ -133,17 +137,14 @@ export function useGame({ storage = true } = {}) {
 
   /* ---------------------------------------------------------------- notices */
 
-  const showNotice = useCallback(
-    (next, { duration = TIMINGS.notice } = {}) => {
-      if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
-      noticeIdRef.current += 1;
-      setNotice({ ...next, id: noticeIdRef.current });
-      if (duration !== Infinity) {
-        noticeTimerRef.current = setTimeout(() => setNotice(null), duration);
-      }
-    },
-    [],
-  );
+  const showNotice = useCallback((next, { duration = TIMINGS.notice } = {}) => {
+    if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+    noticeIdRef.current += 1;
+    setNotice({ ...next, id: noticeIdRef.current });
+    if (duration !== Infinity) {
+      noticeTimerRef.current = setTimeout(() => setNotice(null), duration);
+    }
+  }, []);
 
   const dismissNotice = useCallback(() => {
     if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
@@ -169,19 +170,21 @@ export function useGame({ storage = true } = {}) {
 
   /* --------------------------------------------------------------- actions */
 
-  /** Start a brand new match with the given (optional) names. */
+  /** Start a brand new match with the given (optional) names and settings. */
   const startGame = useCallback(
-    (names = []) => {
+    (names = [], config) => {
+      const rules = normalizeConfig(config ?? stateRef.current.config);
+      if (storage) saveConfig(rules);
       generationRef.current += 1;
       clearTimers();
       dismissNotice();
       setWinnerRevealed(false);
-      const next = createGame({ playerNames: names, status: GAME_STATUS.PLAYING });
+      const next = createGame({ playerNames: names, status: GAME_STATUS.PLAYING, config: rules });
       stateRef.current = next;
       setState(next);
       clearGame();
     },
-    [clearTimers, dismissNotice],
+    [clearTimers, dismissNotice, storage],
   );
 
   /** Roll the die. Resolves after the tumble animation has committed. */
@@ -190,7 +193,9 @@ export function useGame({ storage = true } = {}) {
     if (guardRef.current || !canRollLogic(current)) return; // anti double-click
     guardRef.current = true;
 
-    const rolled = rollDie();
+    const rolled = rollForConfig(current.config);
+    const outcome = evaluateRoll(current.config, rolled);
+    const playerCount = current.players.length;
     const loser = getCurrentPlayer(current);
     const potAtRisk = current.turnScore;
 
@@ -198,25 +203,33 @@ export function useGame({ storage = true } = {}) {
     setState((previous) => ({ ...previous, status: GAME_STATUS.ROLLING }));
     play(SOUND.ROLL);
 
-    schedule(() => {
-      setState((previous) => applyRoll(previous, rolled));
+    schedule(
+      () => {
+        setState((previous) => applyRoll(previous, rolled));
 
-      if (rolled === 1) {
-        play(SOUND.BUST);
-        const nextName = current.players[nextPlayerIndex(current.currentPlayer)].name;
-        showNotice(
-          {
-            tone: NOTICE_TONE.BUST,
-            title: 'OH NO!',
-            lines: [`${loser.name} rolled a 1`, potAtRisk > 0 ? `−${potAtRisk} points lost` : 'No points lost'],
-            turnLine: `${nextName}'s turn`,
-          },
-          { duration: TIMINGS.bust + 650 },
-        );
-        // Hold the feedback, then let the next player act.
-        schedule(() => setState((previous) => settleTurn(previous)), TIMINGS.bust);
-      }
-    }, reducedMotion ? TIMINGS.rollReduced : TIMINGS.roll);
+        if (outcome.kind !== ROLL_OUTCOME.ADD) {
+          play(SOUND.BUST);
+          const nextName = current.players[nextPlayerIndex(current.currentPlayer, playerCount)].name;
+          const wiped = outcome.kind === ROLL_OUTCOME.WIPE;
+          const lost = potAtRisk + (wiped ? loser.score : 0);
+          showNotice(
+            {
+              tone: NOTICE_TONE.BUST,
+              title: wiped ? 'SNAKE EYES!' : 'OH NO!',
+              lines: [
+                wiped ? `${loser.name} rolled two 1s` : `${loser.name} rolled a 1`,
+                lost > 0 ? `−${lost} points lost` : 'No points lost',
+              ],
+              turnLine: `${nextName}'s turn`,
+            },
+            { duration: TIMINGS.bust + 650 },
+          );
+          // Hold the feedback, then let the next player act.
+          schedule(() => setState((previous) => settleTurn(previous)), TIMINGS.bust);
+        }
+      },
+      reducedMotion ? TIMINGS.rollReduced : TIMINGS.roll,
+    );
   }, [play, reducedMotion, schedule, showNotice]);
 
   /** Bank the pot: secure the points and end the turn (or win). */
@@ -325,7 +338,10 @@ export function useGame({ storage = true } = {}) {
       players: state.players,
       currentPlayer: getCurrentPlayer(state),
       currentPlayerIndex: state.currentPlayer,
-      opponentIndex: nextPlayerIndex(state.currentPlayer),
+      opponentIndex: nextPlayerIndex(state.currentPlayer, state.players.length),
+      config: state.config,
+      targetScore: getTargetScore(state),
+      diceValues: state.diceValues,
       turnScore: state.turnScore,
       diceValue: state.diceValue,
       diceMood: resolveDiceMood(state),

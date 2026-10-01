@@ -73,7 +73,9 @@ export function GameHistory({ history }) {
 function describe(entry) {
   switch (entry.type) {
     case EVENT_TYPE.BUST:
-      return `${entry.playerName} rolled a 1 — pot lost`;
+      return entry.snakeEyes
+        ? `${entry.playerName} rolled snake eyes — everything lost`
+        : `${entry.playerName} rolled a 1 — pot lost`;
     case EVENT_TYPE.BANK:
       return `${entry.playerName} banked`;
     default:
@@ -92,7 +94,7 @@ function valueOf(entry) {
     case EVENT_TYPE.BANK:
       return `+${entry.amount}`;
     default:
-      return String(entry.value);
+      return entry.values?.length > 1 ? entry.values.join(' + ') : String(entry.value);
   }
 }
 

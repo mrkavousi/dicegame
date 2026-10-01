@@ -218,3 +218,11 @@
     justify-content: center;
   }
 }
+
+.winner__dot--p3 {
+  background: var(--player-3-color);
+}
+
+.winner__dot--p4 {
+  background: var(--player-4-color);
+}

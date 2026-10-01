@@ -48,11 +48,12 @@ export default function App() {
 
       <div className="app-main">
         {game.view === VIEW.SETUP ? (
-          <StartScreen onStart={game.startGame} />
+          <StartScreen onStart={game.startGame} initialConfig={game.config} />
         ) : game.view === VIEW.WINNER && game.winner ? (
           <WinnerScreen
             winner={game.winner}
-            loser={game.players[game.winner.index === 0 ? 1 : 0]}
+            others={game.players.filter((player) => player.index !== game.winner.index)}
+            targetScore={game.targetScore}
             onPlayAgain={game.playAgain}
             onMainMenu={game.newGame}
           />
@@ -67,7 +68,12 @@ export default function App() {
         description="This match will be abandoned. Scores cannot be recovered."
         onClose={() => setConfirmRestart(false)}
         actions={[
-          { label: 'Keep playing', variant: 'secondary', onClick: () => setConfirmRestart(false), autofocus: true },
+          {
+            label: 'Keep playing',
+            variant: 'secondary',
+            onClick: () => setConfirmRestart(false),
+            autofocus: true,
+          },
           { label: 'New game', variant: 'danger', onClick: confirmAndRestart },
         ]}
       />
