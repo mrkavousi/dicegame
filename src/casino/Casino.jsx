@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../shared/i18n/index.jsx';
 import { findGame } from '../games/index.js';
 import { CasinoHeader } from './CasinoHeader.jsx';
@@ -18,11 +18,26 @@ export function Casino() {
   const [path, navigate] = useRoute();
   const [slotEl, setSlotEl] = useState(null);
   const [nightRequested, setNight] = useState(false);
+  const mainRef = useRef(null);
+  const firstPath = useRef(path);
 
   const game = findGame(path);
   const Game = game?.component ?? null;
   // Only a game on stage can ask for the night theme; the lobby is always light.
   const night = Boolean(game) && nightRequested;
+
+  // The tab title names the page (and follows the language).
+  const gameId = game?.id;
+  useEffect(() => {
+    document.title = gameId ? `${t(`game.${gameId}.name`)} · ${t('hub.brand')}` : t('hub.brand');
+  }, [gameId, t]);
+
+  // Moving between the lobby and a game moves keyboard / screen-reader focus to the new page.
+  useEffect(() => {
+    if (firstPath.current === path) return;
+    firstPath.current = null;
+    mainRef.current?.focus({ preventScroll: true });
+  }, [path]);
 
   // Paint the document background to match the active theme.
   useEffect(() => {
@@ -37,7 +52,7 @@ export function Casino() {
       <div className={`app-shell ${night ? 'theme-night' : ''}`}>
         <CasinoHeader atHome={!game} stars={rewards.stars} onHome={() => navigate('/')} slotRef={setSlotEl} />
 
-        <div className="app-main">
+        <div className="app-main" ref={mainRef} tabIndex={-1}>
           {Game ? (
             <Suspense fallback={<p role="status">{t('hub.loading')}</p>}>
               <Game />

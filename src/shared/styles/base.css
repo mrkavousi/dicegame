@@ -122,3 +122,8 @@ ol {
     align-items: flex-start;
   }
 }
+
+/* The page container takes focus on route changes; it needs no visible ring. */
+.app-main:focus {
+  outline: none;
+}

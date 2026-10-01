@@ -95,3 +95,24 @@ describe('lobby', () => {
     expect(screen.getByLabelText('0 stars')).toBeInTheDocument();
   });
 });
+
+describe('page title and focus', () => {
+  it('names the page in the tab title, in both languages', () => {
+    mountApp();
+    expect(document.title).toBe('Game Hall');
+    fireEvent.click(screen.getByRole('link', { name: /^Pig/ }));
+    expect(document.title).toBe('Pig · Game Hall');
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to Persian' }));
+    expect(document.title).toBe('پیگ · سرای بازی');
+  });
+
+  it('moves focus to the page when you open a game or come back, but not on first load', () => {
+    mountApp();
+    expect(document.activeElement).toBe(document.body);
+    fireEvent.click(screen.getByRole('link', { name: /^Pig/ }));
+    expect(document.activeElement).toBe(document.querySelector('.app-main'));
+    document.querySelector('.app-main').blur();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the game hall' }));
+    expect(document.activeElement).toBe(document.querySelector('.app-main'));
+  });
+});

@@ -17,6 +17,18 @@ Built mobile-first with React + Vite, pure rules engines (one per game), and a
 chunky, flat, playful visual language driven by design tokens. English and Persian
 (RTL) throughout; installable and playable offline.
 
+## Safe for kids
+
+* **No betting, no money, no purchases** — the only reward is a count of harmless *stars*
+  that can't be spent or lost.
+* **No accounts, ads, analytics or external links.** Everything is stored on the device
+  (`localStorage`); there is no server.
+* Friendly wording for young readers (English and Persian), big tap targets, a short
+  *How to play* card on every setup screen, calm animations that respect
+  *reduced motion*, and **Easy** as the first computer level to try.
+* Ages are shown on every lobby card (Pig, Connect Four, Memory Match 6+ · Treasure Hunt 7+ ·
+  Dots & Boxes, Mancala 8+).
+
 ## The game hall
 
 * **Lobby** (`#/`) — one card per game, built from the registry in
@@ -543,6 +555,25 @@ back to synthesis if it does not.
 
 ---
 
+## Storage keys
+
+Every key lives in the browser's `localStorage`; each game validates what it reads (a damaged
+or tampered value is ignored and the game starts fresh).
+
+| Key | Owner | Holds |
+|-----|-------|-------|
+| `casino.stats.v1` | hub | stars + per-game played/won |
+| `pig.lang.v1` | shared | interface language (`en` / `fa`) |
+| `pig.settings.v1` | shared | sound on/off |
+| `pig.game.v1`, `pig.config.v1`, `pig.stats.v1` | Pig | the saved match, last settings, lifetime stats |
+| `connect4.game.v1` | Connect Four | the saved game |
+| `memory.game.v1` | Memory Match | the saved game |
+| `hunt.game.v1` | Treasure Hunt | the saved game |
+| `dots.game.v1` | Dots & Boxes | the saved game |
+| `mancala.game.v1` | Mancala | the saved game |
+
+(`pig.lang.v1` / `pig.settings.v1` keep their original names so nobody loses a setting.)
+
 ## Persistence
 
 The match is mirrored to `localStorage` (`pig.game.v1`) after every state change
@@ -561,7 +592,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-481 tests across 33 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+483 tests across 33 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
