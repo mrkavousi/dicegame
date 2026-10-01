@@ -15,6 +15,8 @@ const strings = {
 
     'game.pig.name': 'Pig',
     'game.pig.desc': 'Roll the die and bank your points — but a 1 loses them all!',
+    'game.connect4.name': 'Connect Four',
+    'game.connect4.desc': 'Drop discs and connect four in a row before your opponent does!',
   },
   fa: {
     'hub.brand': 'سرای بازی',
@@ -29,6 +31,8 @@ const strings = {
 
     'game.pig.name': 'پیگ',
     'game.pig.desc': 'تاس بریز و امتیازت را بانک کن — اما یک ۱ همه‌چیز را می‌سوزاند!',
+    'game.connect4.name': 'چهار در یک ردیف',
+    'game.connect4.desc': 'دیسک بینداز و پیش از حریف چهارتا را در یک ردیف کن!',
   },
 };
 

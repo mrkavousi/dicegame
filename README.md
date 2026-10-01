@@ -7,8 +7,8 @@ No betting, no money, no accounts, no ads — everything stays on your device.
 | Game | Status | Players | Ages |
 |------|--------|---------|------|
 | **Pig** — roll the die, bank your points, beware the 1 | ✅ playable | 2–4 | 6+ |
-| Connect Four | 🔜 next | 2 (or vs computer) | 6+ |
-| Memory Match | 🔜 planned | 1–4 | 6+ |
+| **Connect Four** — drop discs, connect four in a row | ✅ playable | 2 (or vs computer) | 6+ |
+| Memory Match | 🔜 next | 1–4 | 6+ |
 | Treasure Hunt (push-your-luck, like Pig) | 🔜 planned | 2–4 | 7+ |
 | Dots & Boxes | 🔜 planned | 2–4 | 8+ |
 | Mancala | 🔜 planned | 2 (or vs computer) | 8+ |
@@ -96,6 +96,35 @@ visit a Persian browser locale starts the game in Persian.
   work on a Persian keyboard layout too.
 * Adding a language = a new dictionary + an entry in `LANGUAGES`; a test enforces
   that every language has the same keys and placeholders.
+
+---
+
+## Connect Four
+
+Two players take turns dropping a disc into one of 7 columns; it falls to the lowest
+free spot. Connect **four of your discs in a row** — across, up and down, or
+diagonally — to win. A full board is a draw. After a game, **Play again** gives the
+other player the first move; the win counter for each player is kept until you
+*Change players*.
+
+* **Seats** — each seat is a person or a computer (**Easy / Normal / Hard**), so you
+  can play 2 people, person vs computer, or watch two computers.
+* **Computer** (`src/games/connect4/bot.js`) — every level grabs an immediate win and
+  blocks an immediate loss. *Easy* then plays a random column that doesn't hand over a
+  win; *Normal* searches 4 moves ahead and *Hard* 6 moves ahead (negamax with
+  alpha-beta pruning, centre-first). Equal-scoring moves are chosen with the injected
+  RNG, so games vary but tests are deterministic.
+* **Controls** — click/tap a column, or press **1–7** (physical keys, so it also works
+  on a Persian keyboard layout). The board is locked while a disc is falling and on the
+  computer's turn.
+* **Saved automatically** (`connect4.game.v1`); a reload resumes the game. Saved boards
+  are validated (gravity, disc counts) and the result is recomputed from the board.
+* Finished games earn stars (+3 win, +1 draw, +1 when the computer wins).
+* **Code** — `engine.js` (pure rules), `bot.js` (pure), `useConnectFour.js`
+  (timers, input lock, autosave, keys), `Connect4Game.jsx` + `components/Board.jsx`
+  (UI), `strings.js` (EN/FA). Shared building blocks it introduced, reusable by the
+  next games: `shared/hooks/useScheduler.js`, `shared/components/{SeatPicker,
+  HowToPlay,ResultBanner}.jsx`.
 
 ---
 
@@ -199,6 +228,7 @@ src/
 │   └── strings.js             # hub + game-card text (EN/FA)
 ├── games/
 │   ├── index.js               # the game registry (add a game = one entry)
+│   ├── connect4/              # Connect Four: engine.js, bot.js, useConnectFour.js, Connect4Game.jsx, components/Board.jsx, strings.js, icon.jsx
 │   └── pig/                   # everything Pig-specific
 │       ├── PigGame.jsx        # the Pig table: setup → board → winner
 │       ├── components/{Game,Setup,Screens}/   # board, cards, die, controls, history, start/winner/stats
@@ -208,13 +238,14 @@ src/
 └── shared/                    # used by every game
     ├── ui/                    # Button, IconButton, Modal, Notice, icons
     ├── i18n/                  # en.js / fa.js core strings, registerStrings, I18nProvider, useI18n (t, n)
-    ├── hooks/                 # useSound (SoundProvider), useReducedMotion
+    ├── components/            # SeatPicker, HowToPlay, ResultBanner (shared by the games)
+    ├── hooks/                 # useSound (SoundProvider), useReducedMotion, useScheduler
     ├── services/              # storage.js (guarded localStorage), sound.js (Web Audio cues)
     ├── styles/                # tokens.css (design tokens), base.css, index.css
     └── utils/random.js        # injectable RNG + seeded RNG for tests
 tests/
 ├── setup.js                   # jsdom shims; starts each test on #/pig
-├── games/pig/                 # rules, settings, bot, series/undo/stats, die, end-to-end UI flows
+├── games/                     # connect4 engine / bot / UI tests (+ pig/: rules, settings, bot, series, UI flows)
 ├── casino/                    # router, rewards, lobby, stars earned from Pig
 └── shared/                    # i18n dictionaries + language switch, PWA assets
 ```
@@ -407,7 +438,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-172 tests across sixteen files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+221 tests across nineteen files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -435,6 +466,12 @@ npm test
   the lobby built from the registry (cards, age/player hints, navigation, Back button,
   unknown routes, Persian), and the stars Pig awards (+3 for a win, +1 when the
   computer wins).
+* **`tests/games/connect4.*.test.js(x)`** — the engine (gravity, all four win directions,
+  a real 42-move draw, input lock, rematch, save/restore incl. impossible boards), the
+  bot (takes wins, blocks losses, never hands over a win when avoidable, Normal/Hard beat
+  a random player from both seats, Hard beats Easy) and the UI (setup, lock while a disc
+  falls, 1–7 keys, win/draw banners, rematch, stars, computer turns, resume after reload,
+  corrupted save, Persian).
 * **`tests/games/pig/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

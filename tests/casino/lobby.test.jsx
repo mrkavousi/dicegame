@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../../src/App.jsx';
 import { SoundProvider } from '../../src/shared/hooks/useSound.jsx';
 import { GAMES } from '../../src/games/index.js';
+import { LANGUAGES } from '../../src/shared/i18n/index.jsx';
+
+const enName = (game) => LANGUAGES.en.dict[`game.${game.id}.name`];
 
 const mountApp = () =>
   render(
@@ -20,7 +23,7 @@ describe('lobby', () => {
     mountApp();
     expect(screen.getByRole('heading', { name: 'Pick a game', level: 1 })).toBeInTheDocument();
     for (const game of GAMES) {
-      expect(screen.getByRole('link', { name: new RegExp(`^${game.id}`, 'i') })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: new RegExp(`^${enName(game)}`) })).toHaveAttribute(
         'href',
         `#/${game.id}`,
       );
@@ -29,8 +32,9 @@ describe('lobby', () => {
 
   it('shows age and player hints on each card', () => {
     mountApp();
-    expect(screen.getByText('Ages 6+')).toBeInTheDocument();
-    expect(screen.getByText('Players: 2–4')).toBeInTheDocument();
+    expect(screen.getAllByText('Ages 6+')).toHaveLength(GAMES.length);
+    expect(screen.getByText('Players: 2–4')).toBeInTheDocument(); // Pig
+    expect(screen.getByText('Players: 2')).toBeInTheDocument(); // Connect Four
   });
 
   it('opens a game from its card and comes back with the home button', () => {
@@ -67,7 +71,7 @@ describe('lobby', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Persian' }));
     expect(screen.getByRole('heading', { name: 'یک بازی انتخاب کن' })).toBeInTheDocument();
     expect(screen.getByLabelText('۰ ستاره')).toBeInTheDocument();
-    expect(screen.getByText('سن ۶+')).toBeInTheDocument();
+    expect(screen.getAllByText('سن ۶+')).toHaveLength(GAMES.length);
   });
 
   it('loads saved stars and shows the wins on the Pig card', () => {

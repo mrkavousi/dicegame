@@ -20,6 +20,7 @@
 import { lazy } from 'react';
 import { DiceIcon } from '../shared/ui/icons.jsx';
 import PigGame from './pig/PigGame.jsx';
+import { Connect4Icon } from './connect4/icon.jsx';
 
 const ENTRIES = [
   {
@@ -29,6 +30,14 @@ const ENTRIES = [
     ages: { from: 6 },
     players: { min: 2, max: 4 },
     component: PigGame,
+  },
+  {
+    id: 'connect4',
+    icon: Connect4Icon,
+    accent: 2,
+    ages: { from: 6 },
+    players: { min: 2, max: 2 },
+    load: () => import('./connect4/Connect4Game.jsx'),
   },
 ];
 

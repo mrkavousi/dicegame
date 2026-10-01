@@ -1,0 +1,235 @@
+/* Connect Four — layout, board and discs. Seat 1 = red, seat 2 = yellow. */
+
+.c4,
+.c4-setup {
+  --c4-p1: var(--player-4-color);
+  --c4-p1-dark: var(--player-4-dark);
+  --c4-p2: var(--player-3-color);
+  --c4-p2-dark: var(--player-3-dark);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 460px;
+  margin-inline: auto;
+}
+
+.c4-setup {
+  padding-block: var(--space-2) var(--space-8);
+}
+
+.c4-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-2xl);
+  background: var(--player-2-pale);
+  box-shadow: 0 6px 0 var(--player-2-color);
+  color: var(--player-2-ink);
+  text-align: center;
+}
+
+.c4-hero__icon svg {
+  width: 56px;
+  height: 56px;
+  color: var(--player-2-dark);
+}
+
+.c4-hero__title {
+  font-size: clamp(2rem, 11vw, 2.75rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.c4-hero__tagline {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.c4-setup__heading {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- players --- */
+
+.c4-players {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.c4-player {
+  --who: var(--c4-p1);
+  --who-dark: var(--c4-p1-dark);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  transition: border-color var(--dur-fast) linear;
+}
+
+.c4-player--p2 {
+  --who: var(--c4-p2);
+  --who-dark: var(--c4-p2-dark);
+}
+
+.c4-player.is-active {
+  border-color: var(--who);
+  box-shadow: 0 4px 0 var(--who-dark);
+}
+
+.c4-player__disc {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--who);
+  box-shadow: inset 0 -3px 0 var(--who-dark);
+}
+
+.c4-player__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c4-player__score {
+  margin-inline-start: auto;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.c4-status {
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.c4-keys {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- board --- */
+
+.c4-board {
+  --gap: 6px;
+
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--gap);
+  padding: 10px;
+  border-radius: var(--radius-xl);
+  background: var(--blue-500);
+  box-shadow: 0 6px 0 var(--blue-700);
+}
+
+.c4-col {
+  display: grid;
+  grid-template-rows: repeat(6, auto) auto;
+  gap: var(--gap);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.c4-col:disabled {
+  cursor: default;
+}
+
+.c4-col:not(:disabled):hover,
+.c4-col:not(:disabled):focus-visible {
+  background: rgb(255 255 255 / 18%);
+}
+
+.c4-col__number {
+  padding-block-end: 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  opacity: 0.8;
+}
+
+.c4-cell {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-bg);
+  box-shadow: inset 0 3px 0 rgb(0 0 0 / 18%);
+}
+
+.c4-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--c4-p1);
+  box-shadow: inset 0 -4px 0 var(--c4-p1-dark);
+}
+
+.c4-disc--p2 {
+  background: var(--c4-p2);
+  box-shadow: inset 0 -4px 0 var(--c4-p2-dark);
+}
+
+.c4-disc.is-new {
+  animation: c4-fall calc(0.12s + 0.05s * var(--fall)) cubic-bezier(0.55, 0, 1, 0.6) 1;
+}
+
+.c4-disc.is-win {
+  z-index: 1;
+  outline: 4px solid var(--white);
+  animation: c4-win 0.7s ease-in-out 0.45s infinite alternate;
+}
+
+@keyframes c4-fall {
+  from {
+    transform: translateY(calc(var(--fall) * -112%));
+  }
+  72% {
+    transform: translateY(0);
+  }
+  86% {
+    transform: translateY(-9%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes c4-win {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c4-disc.is-new,
+  .c4-disc.is-win {
+    animation: none;
+  }
+}

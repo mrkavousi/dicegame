@@ -1,0 +1,115 @@
+.seat {
+  --seat-color: var(--player-1-color);
+  --seat-dark: var(--player-1-dark);
+  --seat-pale: var(--player-1-pale);
+  --seat-ink: var(--player-1-ink);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.seat--t1 {
+  --seat-color: var(--player-1-color);
+  --seat-dark: var(--player-1-dark);
+  --seat-pale: var(--player-1-pale);
+  --seat-ink: var(--player-1-ink);
+}
+
+.seat--t2 {
+  --seat-color: var(--player-2-color);
+  --seat-dark: var(--player-2-dark);
+  --seat-pale: var(--player-2-pale);
+  --seat-ink: var(--player-2-ink);
+}
+
+.seat--t3 {
+  --seat-color: var(--player-3-color);
+  --seat-dark: var(--player-3-dark);
+  --seat-pale: var(--player-3-pale);
+  --seat-ink: var(--player-3-ink);
+}
+
+.seat--t4 {
+  --seat-color: var(--player-4-color);
+  --seat-dark: var(--player-4-dark);
+  --seat-pale: var(--player-4-pale);
+  --seat-ink: var(--player-4-ink);
+}
+
+.seat__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.seat__label {
+  padding-inline-start: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.seat__type {
+  min-height: 36px;
+  max-width: 60%;
+  padding: 0 var(--space-2);
+  border: var(--border-w) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.seat__type:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.seat__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 var(--color-border);
+}
+
+.seat__control:focus-within {
+  border-color: var(--seat-color);
+  box-shadow: 0 4px 0 var(--seat-dark);
+}
+
+.seat__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--seat-pale);
+  color: var(--seat-ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.seat__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  outline: none;
+}
+
+.seat__input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+}
