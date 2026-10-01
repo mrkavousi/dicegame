@@ -1,32 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
 import { VIEW, useGame } from './hooks/useGame.js';
-import { I18nProvider, useI18n } from '../../shared/i18n/index.jsx';
-import { AppHeader } from '../../casino/CasinoHeader.jsx';
+import { useI18n } from '../../shared/i18n/index.jsx';
+import { HeaderActions, useShell } from '../../casino/ShellContext.jsx';
+import { useRewards } from '../../casino/useRewards.jsx';
+import { OUTCOME } from '../../casino/rewards.js';
 import { StartScreen } from './components/Screens/StartScreen.jsx';
 import { WinnerScreen } from './components/Screens/WinnerScreen.jsx';
 import { GameBoard } from './components/Game/GameBoard.jsx';
 import { Modal } from '../../shared/ui/Modal.jsx';
+import { IconButton } from '../../shared/ui/IconButton.jsx';
+import { ChartIcon, RestartIcon } from '../../shared/ui/icons.jsx';
 import { StatsModal } from './components/Screens/StatsModal.jsx';
 
 /**
- * App shell + view routing.
+ * The Pig table: view routing inside the game.
  *
  * setup → game → winner. The rules and timing live in `useGame`; this component
- * only decides which screen is on stage and handles the "abandon game?" confirm.
+ * only decides which screen is on stage, adds Pig's buttons to the casino header
+ * and handles the "abandon game?" confirm.
  */
-function AppShell() {
+export default function PigGame() {
   const { t } = useI18n();
-  const game = useGame();
+  const { setNight } = useShell();
+  const { recordResult } = useRewards();
+
+  // A game won by a computer still earns the (human) players a consolation star.
+  const onFinish = useCallback(
+    (finished) => recordResult('pig', finished.players[finished.winnerIndex]?.bot ? OUTCOME.LOSS : OUTCOME.WIN),
+    [recordResult],
+  );
+  const game = useGame({ onFinish });
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
   const isPlaying = game.view === VIEW.GAME;
 
-  // Paint the document background to match the active theme.
+  // The winner screen uses the night theme for the whole shell.
   useEffect(() => {
-    document.body.classList.toggle('is-night', game.view === VIEW.WINNER);
-    return () => document.body.classList.remove('is-night');
-  }, [game.view]);
+    setNight(game.view === VIEW.WINNER);
+    return () => setNight(false);
+  }, [game.view, setNight]);
 
   const requestRestart = useCallback(() => {
     if (isPlaying) {
@@ -42,38 +55,34 @@ function AppShell() {
   }, [game]);
 
   return (
-    <div className={`app-shell ${game.view === VIEW.WINNER ? 'theme-night' : ''}`}>
-      <AppHeader
-        muted={game.muted}
-        onToggleMute={game.toggleMuted}
-        onRestart={requestRestart}
-        onShowStats={() => setShowStats(true)}
-        targetScore={game.targetScore}
-        showRestart={game.view !== VIEW.SETUP}
-      />
+    <>
+      <HeaderActions>
+        <IconButton label={t('header.stats')} onClick={() => setShowStats(true)} icon={<ChartIcon />} />
+        {game.view !== VIEW.SETUP ? (
+          <IconButton label={t('header.newGame')} onClick={requestRestart} icon={<RestartIcon />} />
+        ) : null}
+      </HeaderActions>
 
-      <div className="app-main">
-        {game.view === VIEW.SETUP ? (
-          <StartScreen onStart={game.startGame} initialConfig={game.config} />
-        ) : game.view === VIEW.WINNER && game.winner ? (
-          <WinnerScreen
-            winner={game.winner}
-            others={game.players.filter((player) => player.index !== game.winner.index)}
-            targetScore={game.targetScore}
-            players={game.players}
-            series={{
-              length: game.seriesLength,
-              wins: game.seriesWins,
-              gameNumber: game.gameNumber,
-              winner: game.seriesWinner,
-            }}
-            onPlayAgain={game.playAgain}
-            onMainMenu={game.newGame}
-          />
-        ) : (
-          <GameBoard game={game} />
-        )}
-      </div>
+      {game.view === VIEW.SETUP ? (
+        <StartScreen onStart={game.startGame} initialConfig={game.config} />
+      ) : game.view === VIEW.WINNER && game.winner ? (
+        <WinnerScreen
+          winner={game.winner}
+          others={game.players.filter((player) => player.index !== game.winner.index)}
+          targetScore={game.targetScore}
+          players={game.players}
+          series={{
+            length: game.seriesLength,
+            wins: game.seriesWins,
+            gameNumber: game.gameNumber,
+            winner: game.seriesWinner,
+          }}
+          onPlayAgain={game.playAgain}
+          onMainMenu={game.newGame}
+        />
+      ) : (
+        <GameBoard game={game} />
+      )}
 
       <StatsModal
         open={showStats}
@@ -97,15 +106,6 @@ function AppShell() {
           { label: t('confirm.new'), variant: 'danger', onClick: confirmAndRestart },
         ]}
       />
-    </div>
-  );
-}
-
-/** The app, wrapped in the language provider (English / Persian, LTR / RTL). */
-export default function App() {
-  return (
-    <I18nProvider>
-      <AppShell />
-    </I18nProvider>
+    </>
   );
 }

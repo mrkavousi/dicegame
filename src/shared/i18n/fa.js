@@ -4,7 +4,6 @@ export default {
   'lang.switch': 'تغییر به انگلیسی',
   'lang.button': 'EN',
 
-  'header.tag': 'اولین نفر به {target}',
   'header.stats': 'نمایش آمار',
   'header.newGame': 'شروع بازی جدید',
   'header.soundOn': 'روشن کردن صدا',

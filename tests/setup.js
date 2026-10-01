@@ -19,6 +19,8 @@ if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
 
 beforeEach(() => {
   window.localStorage.clear();
+  // Pig's tests start on the Pig table; hub tests navigate explicitly.
+  window.location.hash = '#/pig';
   document.body.className = '';
 });
 

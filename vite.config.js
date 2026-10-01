@@ -12,9 +12,10 @@ export default defineConfig({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
         manifest: {
-          name: 'PIG — Roll. Risk. Win.',
-          short_name: 'PIG',
-          description: 'A fast local-multiplayer dice game. Roll, risk, bank — first to the target score wins.',
+          name: 'Pig Game Hall',
+          short_name: 'Game Hall',
+          description:
+            'A game hall for kids and families: Pig and more turn-based games, with friends or the computer.',
           theme_color: '#58CC02',
           background_color: '#ffffff',
           display: 'standalone',

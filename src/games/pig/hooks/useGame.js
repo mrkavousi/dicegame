@@ -39,7 +39,7 @@ import {
 } from '../utils/gameLogic.js';
 import { useI18n } from '../../../shared/i18n/index.jsx';
 import { MOVE, decideMove } from '../utils/bot.js';
-import { clearGame, loadConfig, loadGame, loadStats, saveConfig, saveGame, saveStats } from '../../../shared/services/storage.js';
+import { clearGame, loadConfig, loadGame, loadStats, saveConfig, saveGame, saveStats } from '../services/pigStorage.js';
 import { emptyStats, recordGame } from '../utils/stats.js';
 import { SOUND } from '../../../shared/services/sound.js';
 import { useSound } from '../../../shared/hooks/useSound.jsx';
@@ -79,9 +79,10 @@ function prefersReducedMotion() {
 }
 
 /**
- * @param {{ storage?: boolean }} [options]
+ * @param {{ storage?: boolean, onFinish?: (finished: object) => void }} [options]
+ *        `onFinish` fires once when a game is won (used by the casino for stars).
  */
-export function useGame({ storage = true } = {}) {
+export function useGame({ storage = true, onFinish } = {}) {
   const [state, setState] = useState(() => {
     if (storage) {
       const saved = loadGame();
@@ -101,6 +102,7 @@ export function useGame({ storage = true } = {}) {
   // ---- refs ----------------------------------------------------------------
   const stateRef = useRef(state);
   const guardRef = useRef(false);
+  const onFinishRef = useRef(onFinish);
   const statsRef = useRef(lifetimeStats);
   const timersRef = useRef(new Set());
   const generationRef = useRef(0);
@@ -115,6 +117,10 @@ export function useGame({ storage = true } = {}) {
     stateRef.current = state;
     guardRef.current = false;
   }, [state]);
+
+  useEffect(() => {
+    onFinishRef.current = onFinish;
+  }, [onFinish]);
 
   /* ----------------------------------------------------------------- timers */
 
@@ -280,6 +286,7 @@ export function useGame({ storage = true } = {}) {
       setLifetimeStats(updated);
       if (storage) saveStats(updated);
       setUndoSnapshot(null);
+      onFinishRef.current?.(next);
       return;
     }
 

@@ -1,0 +1,46 @@
+/**
+ * ============================================================================
+ * Game registry
+ * ============================================================================
+ * The single list of games the casino knows about. The lobby renders its cards
+ * from this array and the router resolves `#/<id>` against it — adding a game
+ * means adding one entry here (plus its name/description in `casino/strings.js`).
+ *
+ * Entry shape:
+ *   id       route + storage namespace (`#/pig`)
+ *   icon     component drawn on the lobby card
+ *   accent   1–4: which player-colour token tints the card
+ *   ages     { from }          — shown as "Ages 6+"
+ *   players  { min, max }      — shown as "Players: 2–4"
+ *   component | load           — an eagerly imported component, or `() => import(...)`
+ *                                for a lazily loaded (code-split) game
+ * ============================================================================
+ */
+
+import { lazy } from 'react';
+import { DiceIcon } from '../shared/ui/icons.jsx';
+import PigGame from './pig/PigGame.jsx';
+
+const ENTRIES = [
+  {
+    id: 'pig',
+    icon: DiceIcon,
+    accent: 1,
+    ages: { from: 6 },
+    players: { min: 2, max: 4 },
+    component: PigGame,
+  },
+];
+
+/** Lazily loaded games are wrapped once, here, so React keeps their identity stable. */
+export const GAMES = Object.freeze(
+  ENTRIES.map((entry) => (entry.component ? entry : { ...entry, component: lazy(entry.load) })),
+);
+
+/**
+ * @param {string} path a route path such as `/pig`
+ * @returns {typeof GAMES[number]|null}
+ */
+export function findGame(path) {
+  return GAMES.find((game) => path === `/${game.id}`) ?? null;
+}

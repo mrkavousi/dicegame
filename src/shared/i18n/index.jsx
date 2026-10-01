@@ -17,9 +17,20 @@ import en from './en.js';
 import fa from './fa.js';
 
 export const LANGUAGES = Object.freeze({
-  en: { dict: en, dir: 'ltr', locale: 'en' },
-  fa: { dict: fa, dir: 'rtl', locale: 'fa-IR' },
+  en: { dict: { ...en }, dir: 'ltr', locale: 'en' },
+  fa: { dict: { ...fa }, dir: 'rtl', locale: 'fa-IR' },
 });
+
+/**
+ * Add a module's strings to the shared dictionaries (call once at module load).
+ * Each game / the casino ships its own `strings.js` and registers it, so the
+ * core dictionary files stay small and a game's text lives next to its code.
+ * @param {{ en: Record<string, string>, fa: Record<string, string> }} strings
+ */
+export function registerStrings(strings) {
+  Object.assign(LANGUAGES.en.dict, strings.en);
+  Object.assign(LANGUAGES.fa.dict, strings.fa);
+}
 
 const FALLBACK_LANGUAGE = 'en';
 
@@ -33,7 +44,7 @@ export function createTranslator(lang) {
   const n = (value) => (formatter ? formatter.format(value) : String(value));
 
   const t = (key, params) => {
-    const template = config.dict[key] ?? en[key] ?? key;
+    const template = config.dict[key] ?? LANGUAGES.en.dict[key] ?? key;
     if (!params) return template;
     return template.replace(/\{(\w+)\}/g, (match, name) => {
       const value = params[name];

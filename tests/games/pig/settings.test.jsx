@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import App from '../../../src/games/pig/PigGame.jsx';
+import App from '../../../src/App.jsx';
 import { SoundProvider } from '../../../src/shared/hooks/useSound.jsx';
 import { TIMINGS } from '../../../src/games/pig/hooks/useGame.js';
 

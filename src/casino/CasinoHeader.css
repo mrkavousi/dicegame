@@ -49,17 +49,6 @@
   line-height: 1;
 }
 
-.app-header__tag {
-  display: none;
-  padding-inline-start: var(--space-2);
-  border-inline-start: 2px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-
 .app-header__actions {
   display: flex;
   align-items: center;
@@ -68,18 +57,35 @@
 }
 
 @media (min-width: 560px) {
-  .app-header__tag {
-    display: inline-block;
-  }
-
-  .app-header__inner {
-    padding-inline: var(--space-6);
-  }
-}
-
-.app-header__lang {
+  .app-header__lang {
   font-family: var(--font-display);
   font-size: var(--fs-sm);
   font-weight: var(--fw-black);
   line-height: 1;
+}
+
+.app-header__game-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app-header__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--player-3-pale);
+  color: var(--player-3-ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  line-height: 1;
+}
+
+.app-header__stars svg {
+  width: 18px;
+  height: 18px;
+  color: var(--yellow-700);
 }

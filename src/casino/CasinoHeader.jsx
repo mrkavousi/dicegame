@@ -1,20 +1,24 @@
 import { useI18n } from '../shared/i18n/index.jsx';
+import { useSound } from '../shared/hooks/useSound.jsx';
 import { IconButton } from '../shared/ui/IconButton.jsx';
-import { ChartIcon, DiceIcon, RestartIcon, SoundOffIcon, SoundOnIcon } from '../shared/ui/icons.jsx';
+import { DiceIcon, HomeIcon, SoundOffIcon, SoundOnIcon, StarIcon } from '../shared/ui/icons.jsx';
 import './CasinoHeader.css';
 
 /**
- * Sticky app bar: wordmark, sound toggle and "new game".
- * The wordmark is a logo rather than a heading — each screen owns its own h1.
+ * Sticky app bar for the whole game hall: brand, a way home, the star count,
+ * language and sound. A game may add its own buttons through the `slotRef`
+ * (see `HeaderActions` in ShellContext).
  *
  * @param {object} props
- * @param {boolean} props.muted
- * @param {boolean} props.showRestart
- * @param {number} [props.targetScore]
- * @param {() => void} [props.onShowStats]
+ * @param {boolean} props.atHome true on the lobby (hides the home button)
+ * @param {number} props.stars
+ * @param {() => void} props.onHome
+ * @param {(el: HTMLElement|null) => void} props.slotRef
  */
-export function AppHeader({ muted, onToggleMute, onRestart, onShowStats, targetScore = 100, showRestart = true }) {
-  const { t, toggleLang } = useI18n();
+export function CasinoHeader({ atHome, stars, onHome, slotRef }) {
+  const { t, n, toggleLang } = useI18n();
+  const { muted, toggleMuted } = useSound();
+
   return (
     <header className="app-header">
       <div className="app-header__inner">
@@ -22,12 +26,16 @@ export function AppHeader({ muted, onToggleMute, onRestart, onShowStats, targetS
           <span className="app-header__mark" aria-hidden="true">
             <DiceIcon />
           </span>
-          <span className="app-header__name">Pig</span>
-          <span className="app-header__tag">{t('header.tag', { target: targetScore })}</span>
+          <span className="app-header__name">{t('hub.brand')}</span>
         </p>
 
         <div className="app-header__actions">
-          {onShowStats ? <IconButton label={t('header.stats')} onClick={onShowStats} icon={<ChartIcon />} /> : null}
+          <div className="app-header__game-actions" ref={slotRef} />
+          {atHome ? null : <IconButton label={t('hub.home')} onClick={onHome} icon={<HomeIcon />} />}
+          <p className="app-header__stars" aria-label={t('hub.stars', { n: stars })}>
+            <StarIcon aria-hidden="true" />
+            <span aria-hidden="true">{n(stars)}</span>
+          </p>
           <IconButton
             label={t('lang.switch')}
             onClick={toggleLang}
@@ -36,14 +44,13 @@ export function AppHeader({ muted, onToggleMute, onRestart, onShowStats, targetS
           <IconButton
             label={muted ? t('header.soundOn') : t('header.soundOff')}
             active={muted}
-            onClick={onToggleMute}
+            onClick={toggleMuted}
             icon={muted ? <SoundOffIcon /> : <SoundOnIcon />}
           />
-          {showRestart ? <IconButton label={t('header.newGame')} onClick={onRestart} icon={<RestartIcon />} /> : null}
         </div>
       </div>
     </header>
   );
 }
 
-export default AppHeader;
+export default CasinoHeader;

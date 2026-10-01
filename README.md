@@ -1,17 +1,44 @@
-# PIG 🎲 — Roll. Risk. Win.
+# Pig Game Hall 🎲⭐
 
-A fast, polished **local-multiplayer dice game** (2–4 players) for the browser.
-Roll as often as you dare, bank before the 1 shows up, first to **100 points** wins
-(or 50 / 150 / 200 — you choose).
+A bright, kid-friendly **game hall** for the browser (ages 6–15): pick a table in the
+lobby, play with friends on one device or against the computer, and collect stars.
+No betting, no money, no accounts, no ads — everything stays on your device.
 
-Built mobile-first with React + Vite, a fully separated rules engine, and a
-chunky, flat, playful visual language driven by design tokens.
+| Game | Status | Players | Ages |
+|------|--------|---------|------|
+| **Pig** — roll the die, bank your points, beware the 1 | ✅ playable | 2–4 | 6+ |
+| Connect Four | 🔜 next | 2 (or vs computer) | 6+ |
+| Memory Match | 🔜 planned | 1–4 | 6+ |
+| Treasure Hunt (push-your-luck, like Pig) | 🔜 planned | 2–4 | 7+ |
+| Dots & Boxes | 🔜 planned | 2–4 | 8+ |
+| Mancala | 🔜 planned | 2 (or vs computer) | 8+ |
 
-> **خلاصهٔ فارسی:** بازی دو نفرهٔ «Pig» — هر بازیکن چند بار تاس می‌ریزد و امتیازها به
-> «پات» همان نوبت اضافه می‌شود. با BANK امتیاز را ذخیره می‌کند؛ اگر ۱ بیاورد کل پات
-> از دست می‌رود و نوبت عوض می‌شود. اولین نفر به ۱۰۰ امتیاز برنده است. رابط کاربری
-> کاملاً واکنش‌گرا (Mobile-first)، با انیمیشن‌های کوتاه، افکت صوتی، ذخیرهٔ خودکار بازی
-> و تست‌های خودکار.
+Built mobile-first with React + Vite, pure rules engines (one per game), and a
+chunky, flat, playful visual language driven by design tokens. English and Persian
+(RTL) throughout; installable and playable offline.
+
+## The game hall
+
+* **Lobby** (`#/`) — one card per game, built from the registry in
+  `src/games/index.js`. Each card shows the age hint, player count and your wins.
+* **Routing** — a tiny dependency-free hash router (`src/casino/router.js`):
+  `#/` is the lobby, `#/pig` is Pig. It needs no server setup, works offline and
+  the browser Back button behaves. Unknown routes fall back to the lobby.
+* **Stars** — finishing a game earns stars (**+3 win, +1 draw or loss**). Stars
+  can only go up: they can't be spent or lost. Stars and per-game win counts are
+  kept in `localStorage` (`casino.stats.v1`) and shown in the header and lobby.
+* **Header** — home button, star count, language toggle and sound for every game;
+  a game can add its own buttons (Pig adds *Show stats* and *New game*).
+* **Adding a game** — create `src/games/<id>/` with a pure `engine.js`, a hook,
+  UI and a `strings.js` (registered with `registerStrings`); add its
+  `game.<id>.name/desc` to `src/casino/strings.js` and one entry to
+  `src/games/index.js` (`component`, or `load: () => import(...)` to code-split).
+
+> **خلاصهٔ فارسی:** «سرای بازی» مجموعه‌ای از بازی‌های نوبتی مناسب سن ۶ تا ۱۵ سال است؛
+> با دوستان روی یک دستگاه یا با کامپیوتر بازی کنید و ستاره جمع کنید. شرط‌بندی و پول
+> در کار نیست. اولین بازی «Pig» است: تاس بریز، امتیاز را بانک کن و مراقب عدد ۱ باش!
+> (در «Pig»، هر بازیکن چند بار تاس می‌ریزد و امتیازها به «پات» نوبت اضافه می‌شود؛
+> اگر ۱ بیاورد پات می‌سوزد. اولین نفر به ۱۰۰ امتیاز برنده است.)
 
 ---
 
@@ -72,7 +99,7 @@ visit a Persian browser locale starts the game in Persian.
 
 ---
 
-## Game rules
+## Pig — game rules
 
 | # | Rule |
 |---|------|
@@ -159,58 +186,37 @@ hand-over or a modal is in progress.
 
 ```
 src/
-├── components/
-│   ├── Game/
-│   │   ├── GameBoard.jsx      # play screen composition + screen-reader live region
-│   │   ├── PlayerCard.jsx     # name, total, pot, progress, active state
-│   │   ├── Dice.jsx           # big die, tumble + landing animation, aria-label
-│   │   ├── TurnScore.jsx      # the pot, including the "burnt pot" animation
-│   │   ├── GameControls.jsx   # ROLL / BANK + contextual hint
-│   │   └── GameHistory.jsx    # collapsible "last rolls" log
-│   ├── Setup/
-│   │   └── PlayerSetup.jsx    # optional player names
-│   ├── Screens/
-│   │   ├── AppHeader.jsx      # wordmark, sound toggle, new game
-│   │   ├── StartScreen.jsx    # pitch + rules + setup
-│   │   └── WinnerScreen.jsx   # celebration, stats, PLAY AGAIN / MAIN MENU
-│   └── UI/
-│       ├── Button.jsx         # chunky primary/bank/secondary/danger/ghost
-│       ├── IconButton.jsx     # header controls with accessible labels
-│       ├── Modal.jsx          # focus-trapped confirm dialog
-│       ├── Notice.jsx         # transient feedback banner (live region)
-│       └── icons.jsx          # inline SVG icon set (no external assets)
-├── i18n/                      # en.js / fa.js dictionaries + I18nProvider, useI18n (t, n)
-├── hooks/
-│   ├── useGame.js             # the only orchestrator: state, timing, sound, lock
-│   ├── useSound.jsx           # SoundProvider + mute state
-│   └── useReducedMotion.js    # live prefers-reduced-motion
-├── services/
-│   ├── storage.js             # guard-wrapped localStorage (game, settings, config, stats)
-│   └── sound.js               # Web Audio cue synthesis (no audio files needed)
-├── styles/
-│   ├── tokens.css             # design tokens: colour, type, space, lips, motion
-│   ├── base.css               # reset, app shell, utilities
-│   └── index.css              # style entry point
-├── utils/
-│   ├── bot.js                 # pure computer-opponent strategy (decideMove)
-│   ├── gameLogic.js           # pure rules — no React, no DOM, no timers
-│   ├── stats.js               # pure lifetime-stats aggregation (recordGame, leaderboard)
-│   └── random.js              # injectable RNG + seeded RNG for tests
-└── App.jsx                    # shell + view routing
+├── main.jsx                   # fonts, styles, SoundProvider, mounts <App/>
+├── App.jsx                    # I18nProvider → RewardsProvider → <Casino/>
+├── casino/                    # the game hall
+│   ├── Casino.jsx             # shell: header + route outlet (lobby or a game)
+│   ├── CasinoHeader.jsx       # home, stars, language, sound + a slot for game buttons
+│   ├── Lobby.jsx              # one card per registered game
+│   ├── router.js              # hash router (useRoute, navigate, parseHash)
+│   ├── rewards.js             # pure: stars + per-game stats (recordResult)
+│   ├── useRewards.jsx         # RewardsProvider / useRewards (persisted)
+│   ├── ShellContext.jsx       # header slot + night theme for the game on stage
+│   └── strings.js             # hub + game-card text (EN/FA)
+├── games/
+│   ├── index.js               # the game registry (add a game = one entry)
+│   └── pig/                   # everything Pig-specific
+│       ├── PigGame.jsx        # the Pig table: setup → board → winner
+│       ├── components/{Game,Setup,Screens}/   # board, cards, die, controls, history, start/winner/stats
+│       ├── hooks/useGame.js   # orchestrator: state, timing, sound, input lock, bot turns
+│       ├── services/pigStorage.js            # saved match, last settings, lifetime stats
+│       └── utils/{gameLogic,bot,stats}.js    # pure rules, computer opponent, stats
+└── shared/                    # used by every game
+    ├── ui/                    # Button, IconButton, Modal, Notice, icons
+    ├── i18n/                  # en.js / fa.js core strings, registerStrings, I18nProvider, useI18n (t, n)
+    ├── hooks/                 # useSound (SoundProvider), useReducedMotion
+    ├── services/              # storage.js (guarded localStorage), sound.js (Web Audio cues)
+    ├── styles/                # tokens.css (design tokens), base.css, index.css
+    └── utils/random.js        # injectable RNG + seeded RNG for tests
 tests/
-├── gameLogic.test.js          # 45 rules/anti-bug/persistence tests
-├── settings.test.js           # 14 config / target score / N-player / two-dice engine tests
-├── settings.test.jsx          # 4 settings-screen UI flow tests
-├── pwa.test.js                # 2 PWA asset checks
-├── i18n.test.js               # 8 dictionary-parity + translator tests
-├── i18n.test.jsx              # 6 language-switch / RTL / Persian-play UI tests
-├── bot.test.js                # 12 bot config + strategy tests
-├── bot.test.jsx               # 4 end-to-end computer-turn tests
-├── series.test.js             # 11 series + lifetime-stats engine tests
-├── series.test.jsx            # 9 undo / series / stats-modal UI tests
-├── App.test.jsx               # 22 end-to-end flow tests through the real UI
-├── Dice.test.jsx              # 11 die rendering/a11y tests
-└── setup.js                   # jsdom environment shims
+├── setup.js                   # jsdom shims; starts each test on #/pig
+├── games/pig/                 # rules, settings, bot, series/undo/stats, die, end-to-end UI flows
+├── casino/                    # router, rewards, lobby, stars earned from Pig
+└── shared/                    # i18n dictionaries + language switch, PWA assets
 ```
 
 ---
@@ -227,7 +233,7 @@ hooks/useGame.js     orchestration        timers, lock, sound, storage, notices
 components/**        presentation         props in, events out — no game state
 ```
 
-### Rules engine — `src/utils/gameLogic.js`
+### Rules engine — `src/games/pig/utils/gameLogic.js`
 
 No React, no DOM, no `Math.random`, no timers. Every function returns a **new**
 state object, so the rules can be unit-tested without rendering anything.
@@ -271,7 +277,7 @@ The equivalent pure state shape:
 }
 ```
 
-### Timing — `TIMINGS` in `src/hooks/useGame.js`
+### Timing — `TIMINGS` in `src/games/pig/hooks/useGame.js`
 
 | Key | ms | Purpose |
 |-----|----|---------|
@@ -401,31 +407,35 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-148 tests across twelve files, all deterministic (the die is injected, never random):
+172 tests across sixteen files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
-* **`tests/gameLogic.test.js`** — the six scenarios from the brief
+* **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
   turn passes; 98+3 banked → win; 99 then 1 → no win), plus every anti-bug rule,
   history capping, stats, resets and `restoreGame` validation.
-* **`tests/App.test.jsx`** — plays the real UI with fake timers and a scripted
+* **`tests/games/pig/App.test.jsx`** — plays the real UI with fake timers and a scripted
   die: setup → rolls → bank hand-over → bust → win → play again → main menu,
   double-click protection, input locking, keyboard shortcuts, persistence,
   resume-on-refresh and the abandon-match confirm dialog.
-* **`tests/settings.test.js` / `.jsx`** — game settings: config normalisation,
+* **`tests/games/pig/settings.test.js` / `.jsx`** — game settings: config normalisation,
   custom target scores, 3-player turn rotation, the two-dice rules (including
   snake eyes), save/restore of the config (and legacy saves without one), and the
   start-screen controls end to end.
-* **`tests/bot.test.js` / `.jsx`** — bot seats in the config, default bot names,
+* **`tests/games/pig/bot.test.js` / `.jsx`** — bot seats in the config, default bot names,
   every strategy rule, and full computer turns through the real UI (rolling to
   the threshold, banking, busting, and the keyboard being locked out).
-* **`tests/series.test.js` / `.jsx`** — best-of-N bookkeeping (wins, next game,
+* **`tests/games/pig/series.test.js` / `.jsx`** — best-of-N bookkeeping (wins, next game,
   starting-seat rotation, legacy-save upgrade), stats aggregation and the
   leaderboard, plus the undo button/key and the stats modal through the real UI.
-* **`tests/i18n.test.js` / `.jsx`** — Persian and English dictionaries have identical
+* **`tests/shared/i18n.test.js` / `.jsx`** — Persian and English dictionaries have identical
   keys and placeholders, number formatting, fallbacks, the language toggle
   (`lang`/`dir`, persistence) and a game played in Persian, including shortcuts
   from a Persian keyboard layout.
-* **`tests/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
+* **`tests/casino/*`** — the hash router, stars/rewards maths and corrupt-data handling,
+  the lobby built from the registry (cards, age/player hints, navigation, Back button,
+  unknown routes, Persian), and the stars Pig awards (+3 for a win, +1 when the
+  computer wins).
+* **`tests/games/pig/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 
 ---

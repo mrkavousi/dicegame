@@ -8,7 +8,6 @@ export default {
   'lang.button': 'فا',
 
   // header / dialogs
-  'header.tag': 'first to {target}',
   'header.stats': 'Show stats',
   'header.newGame': 'Start a new game',
   'header.soundOn': 'Turn sound on',

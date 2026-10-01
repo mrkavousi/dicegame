@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import en from '../../src/shared/i18n/en.js';
 import fa from '../../src/shared/i18n/fa.js';
-import { LANGUAGES, createTranslator } from '../../src/shared/i18n/index.jsx';
+import { LANGUAGES, createTranslator, registerStrings } from '../../src/shared/i18n/index.jsx';
+// Importing a strings module registers it — list every game's here as it is added.
+import '../../src/casino/strings.js';
 
 const placeholders = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 
@@ -51,5 +53,36 @@ describe('translator', () => {
 
   it('keeps unknown placeholders visible instead of crashing', () => {
     expect(createTranslator('en').t('board.turn', {})).toBe("{name}'s turn");
+  });
+});
+
+describe('merged dictionaries (core + casino + every game)', () => {
+  const merged = { en: LANGUAGES.en.dict, fa: LANGUAGES.fa.dict };
+
+  it('have identical keys in both languages', () => {
+    expect(Object.keys(merged.fa).sort()).toEqual(Object.keys(merged.en).sort());
+  });
+
+  it('use identical placeholders for every key', () => {
+    for (const key of Object.keys(merged.en)) {
+      expect(placeholders(merged.fa[key]), key).toEqual(placeholders(merged.en[key]));
+    }
+  });
+
+  it('every game in the registry has a name and description card string', async () => {
+    const { GAMES } = await import('../../src/games/index.js');
+    for (const game of GAMES) {
+      expect(merged.en[`game.${game.id}.name`], game.id).toBeTruthy();
+      expect(merged.en[`game.${game.id}.desc`], game.id).toBeTruthy();
+      expect(merged.fa[`game.${game.id}.name`], game.id).toBeTruthy();
+    }
+  });
+
+  it('registerStrings adds keys to both languages', () => {
+    registerStrings({ en: { 'test.hello': 'Hi {name}' }, fa: { 'test.hello': 'سلام {name}' } });
+    expect(createTranslator('en').t('test.hello', { name: 'A' })).toBe('Hi A');
+    expect(createTranslator('fa').t('test.hello', { name: 'A' })).toBe('سلام A');
+    delete LANGUAGES.en.dict['test.hello'];
+    delete LANGUAGES.fa.dict['test.hello'];
   });
 });
