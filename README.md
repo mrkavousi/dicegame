@@ -8,8 +8,8 @@ No betting, no money, no accounts, no ads — everything stays on your device.
 |------|--------|---------|------|
 | **Pig** — roll the die, bank your points, beware the 1 | ✅ playable | 2–4 | 6+ |
 | **Connect Four** — drop discs, connect four in a row | ✅ playable | 2 (or vs computer) | 6+ |
-| Memory Match | 🔜 next | 1–4 | 6+ |
-| Treasure Hunt (push-your-luck, like Pig) | 🔜 planned | 2–4 | 7+ |
+| **Memory Match** — flip cards, find the pairs | ✅ playable | 1–4 | 6+ |
+| Treasure Hunt (push-your-luck, like Pig) | 🔜 next | 2–4 | 7+ |
 | Dots & Boxes | 🔜 planned | 2–4 | 8+ |
 | Mancala | 🔜 planned | 2 (or vs computer) | 8+ |
 
@@ -128,6 +128,34 @@ other player the first move; the win counter for each player is kept until you
 
 ---
 
+## Memory Match
+
+A grid of face-down cards hides pairs of pictures. On your turn **flip two cards**: if
+they match you keep them and **go again**; if not, they flip back and the turn passes.
+When every pair is found, the player with the most pairs wins (ties are shared). Play
+alone to find them all in as few tries as you can.
+
+* **Setup** — 1–4 players, each a person or a computer (Easy / Normal / Hard), and a
+  board size: *Small* 3×4, *Medium* 4×4, *Large* 4×5, *Huge* 6×6 (so younger kids can
+  start small).
+* **Pictures** — 18 symbols drawn in SVG (6 shapes × 3 colours), no image files. Every
+  card has a text label ("Card 5: red heart") for screen readers.
+* **Computer** (`src/games/memory/bot.js`) — it only uses what a person could know:
+  cards that have been face-up before. Difficulty is *memory*: Easy remembers ~30% of
+  the cards it has seen, Normal ~65%, Hard 100%. It completes a pair it remembers,
+  otherwise explores unseen cards. The recall roll uses the injected RNG, so tests are exact.
+* **Controls** — tap/click a card, or Tab + Enter/Space; the **arrow keys** move between
+  cards (and swap left/right in Persian). Input is locked while two cards are showing
+  and on the computer's turn.
+* **Saved automatically** (`memory.game.v1`); the saved deck is validated (every symbol
+  exactly twice, pairs found together, scores recomputed from the board).
+* Stars: +3 for a win (every solo game), +1 for a tie or when the computer wins.
+* **Code** — `engine.js` (pure), `bot.js` (pure), `useMemory.js` (timers, lock, autosave),
+  `MemoryGame.jsx` + `components/{Board,Glyph}.jsx`, `strings.js`. New shared pieces:
+  `shared/components/ChoiceGroup.jsx` and `shuffle()` in `shared/utils/random.js`.
+
+---
+
 ## Pig — game rules
 
 | # | Rule |
@@ -228,6 +256,7 @@ src/
 │   └── strings.js             # hub + game-card text (EN/FA)
 ├── games/
 │   ├── index.js               # the game registry (add a game = one entry)
+│   ├── memory/                # Memory Match: engine.js, bot.js, useMemory.js, MemoryGame.jsx, components/{Board,Glyph}.jsx, strings.js, icon.jsx
 │   ├── connect4/              # Connect Four: engine.js, bot.js, useConnectFour.js, Connect4Game.jsx, components/Board.jsx, strings.js, icon.jsx
 │   └── pig/                   # everything Pig-specific
 │       ├── PigGame.jsx        # the Pig table: setup → board → winner
@@ -238,7 +267,7 @@ src/
 └── shared/                    # used by every game
     ├── ui/                    # Button, IconButton, Modal, Notice, icons
     ├── i18n/                  # en.js / fa.js core strings, registerStrings, I18nProvider, useI18n (t, n)
-    ├── components/            # SeatPicker, HowToPlay, ResultBanner (shared by the games)
+    ├── components/            # SeatPicker, ChoiceGroup, HowToPlay, ResultBanner (shared by the games)
     ├── hooks/                 # useSound (SoundProvider), useReducedMotion, useScheduler
     ├── services/              # storage.js (guarded localStorage), sound.js (Web Audio cues)
     ├── styles/                # tokens.css (design tokens), base.css, index.css
@@ -438,7 +467,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-222 tests across twenty files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+304 tests across 24 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -472,6 +501,12 @@ npm test
   a random player from both seats, Hard beats Easy) and the UI (setup, lock while a disc
   falls, 1–7 keys, win/draw banners, rematch, stars, computer turns, resume after reload,
   corrupted save, Persian).
+* **`tests/games/memory.*.test.js(x)`** — the engine (deck has each symbol twice, flip rules and
+  input lock, match keeps the turn / miss passes it, ties, solo, rematch rotation, validated
+  save/restore), the bot (always flips a legal card, uses only seen cards, recall levels via the
+  injected RNG, Hard beats Easy) and the UI (setup, sizes, locks, arrow keys, wins/ties/solo,
+  computer turns incl. a computer win, resume, tampered saves, Persian/RTL).
+* **`tests/shared/css.test.js`** — every stylesheet has balanced braces (a broken rule once slipped in).
 * **`tests/games/pig/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

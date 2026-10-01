@@ -21,6 +21,7 @@ import { lazy } from 'react';
 import { DiceIcon } from '../shared/ui/icons.jsx';
 import PigGame from './pig/PigGame.jsx';
 import { Connect4Icon } from './connect4/icon.jsx';
+import { MemoryIcon } from './memory/icon.jsx';
 
 const ENTRIES = [
   {
@@ -38,6 +39,14 @@ const ENTRIES = [
     ages: { from: 6 },
     players: { min: 2, max: 2 },
     load: () => import('./connect4/Connect4Game.jsx'),
+  },
+  {
+    id: 'memory',
+    icon: MemoryIcon,
+    accent: 3,
+    ages: { from: 6 },
+    players: { min: 1, max: 4 },
+    load: () => import('./memory/MemoryGame.jsx'),
   },
 ];
 

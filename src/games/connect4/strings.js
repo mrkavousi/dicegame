@@ -5,7 +5,6 @@ const strings = {
   en: {
     'c4.title': 'Connect Four',
     'c4.tagline': 'Drop. Connect. Win.',
-    'c4.rules.title': 'How to play',
     'c4.rules.1': 'Take turns dropping a disc into a column.',
     'c4.rules.2': 'Your disc falls to the lowest free spot.',
     'c4.rules.3': 'Connect four of your discs in a row — sideways, up and down, or diagonally — to win!',
@@ -24,7 +23,6 @@ const strings = {
   fa: {
     'c4.title': 'چهار در یک ردیف',
     'c4.tagline': 'بنداز. وصل کن. ببر.',
-    'c4.rules.title': 'طرز بازی',
     'c4.rules.1': 'نوبتی یک دیسک را در یکی از ستون‌ها بینداز.',
     'c4.rules.2': 'دیسک تو تا پایین‌ترین جای خالی می‌افتد.',
     'c4.rules.3': 'چهار دیسک خودت را در یک ردیف — افقی، عمودی یا مورب — کنار هم بچین تا ببری!',

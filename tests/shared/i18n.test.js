@@ -5,6 +5,7 @@ import { LANGUAGES, createTranslator, registerStrings } from '../../src/shared/i
 // Importing a strings module registers it — list every game's here as it is added.
 import '../../src/casino/strings.js';
 import '../../src/games/connect4/strings.js';
+import '../../src/games/memory/strings.js';
 
 const placeholders = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 

@@ -1,0 +1,251 @@
+/* Memory Match — layout, card grid and flip animation. */
+
+.mem,
+.mem-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+}
+
+.mem-setup {
+  padding-block: var(--space-2) var(--space-8);
+}
+
+.mem-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-2xl);
+  background: var(--player-3-pale);
+  box-shadow: 0 6px 0 var(--player-3-color);
+  color: var(--player-3-ink);
+  text-align: center;
+}
+
+.mem-hero__icon svg {
+  width: 56px;
+  height: 56px;
+  color: var(--player-3-dark);
+}
+
+.mem-hero__title {
+  font-size: clamp(2rem, 11vw, 2.75rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.mem-hero__tagline {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.mem-setup__heading {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- players --- */
+
+.mem-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--space-2);
+}
+
+.mem-player {
+  --who: var(--player-1-color);
+  --who-dark: var(--player-1-dark);
+  --who-pale: var(--player-1-pale);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+}
+
+.mem-player--p1 {
+  --who: var(--player-1-color);
+  --who-dark: var(--player-1-dark);
+  --who-pale: var(--player-1-pale);
+}
+
+.mem-player--p2 {
+  --who: var(--player-2-color);
+  --who-dark: var(--player-2-dark);
+  --who-pale: var(--player-2-pale);
+}
+
+.mem-player--p3 {
+  --who: var(--player-3-color);
+  --who-dark: var(--player-3-dark);
+  --who-pale: var(--player-3-pale);
+}
+
+.mem-player--p4 {
+  --who: var(--player-4-color);
+  --who-dark: var(--player-4-dark);
+  --who-pale: var(--player-4-pale);
+}
+
+.mem-player.is-active {
+  border-color: var(--who);
+  background: var(--who-pale);
+  box-shadow: 0 4px 0 var(--who-dark);
+}
+
+.mem-player__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mem-player__score {
+  margin-inline-start: auto;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.mem-status {
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.mem-keys {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- grid --- */
+
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: var(--space-2);
+  perspective: 800px;
+}
+
+.mem-grid--6x6 {
+  gap: 6px;
+}
+
+.mem-card {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+}
+
+.mem-card:disabled {
+  cursor: default;
+}
+
+.mem-card__inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.mem-card.is-up .mem-card__inner {
+  transform: rotateY(180deg);
+}
+
+.mem-card__back,
+.mem-card__front {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  backface-visibility: hidden;
+}
+
+.mem-card__back {
+  background: radial-gradient(circle at 30% 30%, rgb(255 255 255 / 25%) 0 14%, transparent 15%), var(--player-2-color);
+  box-shadow: 0 4px 0 var(--player-2-dark);
+}
+
+.mem-card:not(:disabled):hover .mem-card__back,
+.mem-card:focus-visible .mem-card__back {
+  background: radial-gradient(circle at 30% 30%, rgb(255 255 255 / 35%) 0 14%, transparent 15%), var(--player-2-color);
+  transform: translateY(-2px);
+}
+
+.mem-card__front {
+  transform: rotateY(180deg);
+  border: var(--border-w-thick) solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 var(--color-border);
+}
+
+.mem-card__front svg {
+  width: 62%;
+  height: 62%;
+}
+
+.mem-card.is-found--p1 .mem-card__front {
+  border-color: var(--player-1-color);
+  background: var(--player-1-pale);
+}
+
+.mem-card.is-found--p2 .mem-card__front {
+  border-color: var(--player-2-color);
+  background: var(--player-2-pale);
+}
+
+.mem-card.is-found--p3 .mem-card__front {
+  border-color: var(--player-3-color);
+  background: var(--player-3-pale);
+}
+
+.mem-card.is-found--p4 .mem-card__front {
+  border-color: var(--player-4-color);
+  background: var(--player-4-pale);
+}
+
+.mem-card.is-found {
+  opacity: 0.8;
+}
+
+.mem-card.is-new-match .mem-card__front {
+  animation: mem-pop 0.5s var(--ease-pop) 1;
+}
+
+@keyframes mem-pop {
+  50% {
+    transform: rotateY(180deg) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-card__inner {
+    transition: none;
+  }
+
+  .mem-card.is-new-match .mem-card__front {
+    animation: none;
+  }
+}

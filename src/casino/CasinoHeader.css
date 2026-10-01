@@ -56,8 +56,7 @@
   margin-inline-start: auto;
 }
 
-@media (min-width: 560px) {
-  .app-header__lang {
+.app-header__lang {
   font-family: var(--font-display);
   font-size: var(--fs-sm);
   font-weight: var(--fw-black);
@@ -88,4 +87,10 @@
   width: 18px;
   height: 18px;
   color: var(--yellow-700);
+}
+
+@media (min-width: 560px) {
+  .app-header__inner {
+    padding-inline: var(--space-6);
+  }
 }

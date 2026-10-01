@@ -39,7 +39,7 @@ function Setup({ initial, onStart }) {
         <p className="c4-hero__tagline">{t('c4.tagline')}</p>
       </section>
 
-      <HowToPlay title={t('c4.rules.title')} steps={[t('c4.rules.1'), t('c4.rules.2'), t('c4.rules.3')]} />
+      <HowToPlay title={t('hub.howto')} steps={[t('c4.rules.1'), t('c4.rules.2'), t('c4.rules.3')]} />
 
       <h2 className="c4-setup__heading label">{t('setup.heading')}</h2>
       {seats.map((seat, index) => (
