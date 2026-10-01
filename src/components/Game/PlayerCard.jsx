@@ -44,7 +44,10 @@ export function PlayerCard({
           {initial}
         </span>
         <span className="player-card__identity">
-          <span className="player-card__label label">Player {player.index + 1}</span>
+          <span className="player-card__label label">
+            Player {player.index + 1}
+            {player.bot ? ' · Computer' : ''}
+          </span>
           <span className="player-card__name">{player.name}</span>
         </span>
         <span className="player-card__status">

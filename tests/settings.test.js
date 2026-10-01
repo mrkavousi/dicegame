@@ -28,6 +28,7 @@ describe('config', () => {
       targetScore: 100,
       playerCount: 4,
       variant: VARIANT.CLASSIC,
+      bots: [null, null, null, null],
     });
     expect(normalizeConfig({ targetScore: 5, playerCount: 1 })).toMatchObject({
       targetScore: 20,

@@ -43,13 +43,29 @@ export const VARIANT = Object.freeze({
   TWO_DICE: 'twoDice',
 });
 
-/** @typedef {{ targetScore: number, playerCount: number, variant: string }} GameConfig */
+/** Computer-opponent difficulty levels. */
+export const DIFFICULTY = Object.freeze({
+  EASY: 'easy',
+  NORMAL: 'normal',
+  HARD: 'hard',
+});
+
+/** Default name of a computer player (used when the name field is left empty). */
+export const BOT_NAMES = Object.freeze({
+  [DIFFICULTY.EASY]: 'Bot · Easy',
+  [DIFFICULTY.NORMAL]: 'Bot · Normal',
+  [DIFFICULTY.HARD]: 'Bot · Hard',
+});
+
+/** @typedef {{ targetScore: number, playerCount: number, variant: string, bots: Array<string|null> }} GameConfig */
 
 /** @type {GameConfig} */
 export const DEFAULT_CONFIG = Object.freeze({
   targetScore: WINNING_SCORE,
   playerCount: PLAYER_COUNT,
   variant: VARIANT.CLASSIC,
+  /** Per seat: null for a human, otherwise a DIFFICULTY. */
+  bots: Object.freeze([null, null]),
 });
 
 /** How many log entries we keep in memory / storage. */
@@ -100,10 +116,16 @@ function clampInt(value, min, max, fallback) {
  */
 export function normalizeConfig(raw) {
   const input = raw && typeof raw === 'object' ? raw : {};
+  const playerCount = clampInt(input.playerCount, MIN_PLAYERS, MAX_PLAYERS, DEFAULT_CONFIG.playerCount);
+  const levels = Object.values(DIFFICULTY);
+  const bots = Array.from({ length: playerCount }, (_, index) =>
+    Array.isArray(input.bots) && levels.includes(input.bots[index]) ? input.bots[index] : null,
+  );
   return {
     targetScore: clampInt(input.targetScore, MIN_TARGET, MAX_TARGET, DEFAULT_CONFIG.targetScore),
-    playerCount: clampInt(input.playerCount, MIN_PLAYERS, MAX_PLAYERS, DEFAULT_CONFIG.playerCount),
+    playerCount,
     variant: Object.values(VARIANT).includes(input.variant) ? input.variant : VARIANT.CLASSIC,
+    bots,
   };
 }
 
@@ -132,12 +154,15 @@ export function normalizeName(name, index) {
 /**
  * @param {number} index
  * @param {string} [name]
+ * @param {string|null} [bot] a DIFFICULTY for computer players
  */
-export function createPlayer(index, name) {
+export function createPlayer(index, name, bot = null) {
+  const named = typeof name === 'string' && name.trim().length > 0;
   return {
     id: index + 1,
     index,
-    name: normalizeName(name, index),
+    bot,
+    name: bot && !named ? BOT_NAMES[bot] : normalizeName(name, index),
     score: 0,
     bestTurn: 0,
     stats: { rolls: 0, busts: 0 },
@@ -157,7 +182,9 @@ export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING, con
   return {
     status,
     config: rules,
-    players: Array.from({ length: rules.playerCount }, (_, index) => createPlayer(index, playerNames[index])),
+    players: Array.from({ length: rules.playerCount }, (_, index) =>
+      createPlayer(index, playerNames[index], rules.bots[index]),
+    ),
     currentPlayer: 0,
     turnScore: 0,
     diceValue: null,
@@ -186,6 +213,14 @@ export function getCurrentPlayer(state) {
  */
 export function nextPlayerIndex(index, count = PLAYER_COUNT) {
   return (index + 1) % count;
+}
+
+/**
+ * The difficulty of the active player if it is a computer, otherwise null.
+ * @param {object} state
+ */
+export function getBotLevel(state) {
+  return state.players[state.currentPlayer]?.bot ?? null;
 }
 
 /** The target score of a game (falls back to the default for legacy states). */
@@ -533,7 +568,7 @@ export function restoreGame(raw) {
   const playerCount = config.playerCount;
 
   const restoredPlayers = players.map((player, index) => ({
-    ...createPlayer(index, player?.name),
+    ...createPlayer(index, player?.name, config.bots[index]),
     score: clampScore(player?.score),
     bestTurn: clampScore(player?.bestTurn),
     stats: {

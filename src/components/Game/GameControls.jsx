@@ -19,6 +19,7 @@ const TEMPTING_POT = 20;
  * @param {number} [props.targetScore] points needed to win
  * @param {boolean} props.isRolling
  * @param {boolean} props.isSwitching
+ * @param {string|null} [props.botName] set while a computer player is taking its turn
  */
 export function GameControls({
   canRoll,
@@ -28,6 +29,7 @@ export function GameControls({
   targetScore = WINNING_SCORE,
   isRolling,
   isSwitching,
+  botName = null,
   onRoll,
   onBank,
 }) {
@@ -36,6 +38,7 @@ export function GameControls({
   let hint = 'Roll the die to build your pot.';
   if (isRolling) hint = 'Rolling…';
   else if (isSwitching) hint = 'Next player is up…';
+  else if (botName) hint = `${botName} is thinking…`;
   else if (wouldWin) hint = `Bank now to win the game!`;
   else if (turnScore >= TEMPTING_POT) hint = `${turnScore} points on the line — bank to keep them.`;
   else if (turnScore > 0) hint = `Bank to keep your ${turnScore} points, or push your luck.`;

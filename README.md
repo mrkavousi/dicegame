@@ -49,8 +49,25 @@ Chosen on the start screen and remembered between visits (`pig.config.v1`).
 | Setting | Options |
 |---------|---------|
 | Players | 2, 3 or 4 |
+| Seat type | each player is **Human** or a **computer** (Easy / Normal / Hard) |
 | Play to | 50, 100, 150 or 200 points |
 | Variant | **Classic** (one die) or **Two dice** |
+
+### Computer opponent
+
+Pick *Bot · Easy / Normal / Hard* in a player's seat dropdown. The bot pauses
+briefly ("thinking…"), then rolls or banks on its own; the Roll/Bank buttons and
+the `R`/`B` keys are disabled on its turn. Bots can fill any seat, so
+bot-vs-bot (a spectator game) works too. The strategy lives in the pure module
+`src/utils/bot.js` (`decideMove(state)`):
+
+| Level | Strategy |
+|-------|----------|
+| Easy | banks early — at about 60% of the break-even pot |
+| Normal | banks at the break-even pot: 20 in classic, `(200 − score) / 11` in two-dice (accounts for the snake-eyes score wipe) |
+| Hard | Normal, but keeps pushing when a rival is close to winning and plays safe when far ahead |
+
+All levels always roll an empty pot and always bank a pot that wins the game.
 
 **Two-dice variant:** each roll uses two dice. Both dice are added to the pot,
 except: a single **1** burns the pot (turn ends), and **two 1s** ("snake eyes")
@@ -112,6 +129,7 @@ src/
 │   ├── base.css               # reset, app shell, utilities
 │   └── index.css              # style entry point
 ├── utils/
+│   ├── bot.js                 # pure computer-opponent strategy (decideMove)
 │   ├── gameLogic.js           # pure rules — no React, no DOM, no timers
 │   └── random.js              # injectable RNG + seeded RNG for tests
 └── App.jsx                    # shell + view routing
@@ -119,6 +137,8 @@ tests/
 ├── gameLogic.test.js          # 45 rules/anti-bug/persistence tests
 ├── settings.test.js           # 14 config / target score / N-player / two-dice engine tests
 ├── settings.test.jsx          # 4 settings-screen UI flow tests
+├── bot.test.js                # 12 bot config + strategy tests
+├── bot.test.jsx               # 4 end-to-end computer-turn tests
 ├── App.test.jsx               # 22 end-to-end flow tests through the real UI
 ├── Dice.test.jsx              # 11 die rendering/a11y tests
 └── setup.js                   # jsdom environment shims
@@ -311,7 +331,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-96 tests across five files, all deterministic (the die is injected, never random):
+112 tests across seven files, all deterministic (the die is injected, never random):
 
 * **`tests/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -325,6 +345,9 @@ npm test
   custom target scores, 3-player turn rotation, the two-dice rules (including
   snake eyes), save/restore of the config (and legacy saves without one), and the
   start-screen controls end to end.
+* **`tests/bot.test.js` / `.jsx`** — bot seats in the config, default bot names,
+  every strategy rule, and full computer turns through the real UI (rolling to
+  the threshold, banking, busting, and the keyboard being locked out).
 * **`tests/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

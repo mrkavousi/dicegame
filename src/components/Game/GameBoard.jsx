@@ -106,6 +106,7 @@ export function GameBoard({ game }) {
             targetScore={targetScore}
             isRolling={isRolling}
             isSwitching={game.status === GAME_STATUS.SWITCHING}
+            botName={game.isBotTurn ? current.name : null}
             onRoll={roll}
             onBank={bank}
           />

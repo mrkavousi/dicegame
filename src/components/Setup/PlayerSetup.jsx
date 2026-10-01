@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { MAX_NAME_LENGTH, MAX_PLAYERS, MIN_PLAYERS, TARGET_SCORES, VARIANT } from '../../utils/gameLogic.js';
+import {
+  BOT_NAMES,
+  DIFFICULTY,
+  MAX_NAME_LENGTH,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  TARGET_SCORES,
+  VARIANT,
+} from '../../utils/gameLogic.js';
 import { Button } from '../UI/Button.jsx';
 import './PlayerSetup.css';
 
@@ -8,6 +16,12 @@ const PLAYER_COUNTS = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, 
 const VARIANTS = [
   { value: VARIANT.CLASSIC, label: 'Classic' },
   { value: VARIANT.TWO_DICE, label: 'Two dice' },
+];
+
+/** Who sits in each seat. The empty value is a human. */
+const SEAT_TYPES = [
+  { value: '', label: 'Human' },
+  ...Object.values(DIFFICULTY).map((level) => ({ value: level, label: BOT_NAMES[level] })),
 ];
 
 /** A row of radio "chips" — native inputs, so keyboard and screen readers just work. */
@@ -53,6 +67,12 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
 
   const setOption = (key) => (value) => onConfigChange({ ...config, [key]: value });
 
+  const setSeat = (index) => (event) => {
+    const bots = Array.from({ length: MAX_PLAYERS }, (_, i) => config.bots?.[i] ?? null);
+    bots[index] = event.target.value || null;
+    onConfigChange({ ...config, bots });
+  };
+
   const submit = (event) => {
     event.preventDefault();
     onStart(names.slice(0, config.playerCount), config);
@@ -65,37 +85,55 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
       </h2>
 
       <div className="setup__fields">
-        {names.slice(0, config.playerCount).map((name, index) => (
-          <div className={`setup__field setup__field--p${index + 1}`} key={index}>
-            <label className="setup__label label" htmlFor={`player-${index + 1}-name`}>
-              Player {index + 1}
-            </label>
-            <div className="setup__control">
-              <span className="setup__avatar" aria-hidden="true">
-                {(name.trim().charAt(0) || String(index + 1)).toUpperCase()}
-              </span>
-              <input
-                id={`player-${index + 1}-name`}
-                className="setup__input"
-                type="text"
-                name={`player-${index + 1}-name`}
-                value={name}
-                onChange={update(index)}
-                placeholder={`Player ${index + 1}`}
-                maxLength={MAX_NAME_LENGTH}
-                autoComplete="off"
-                autoCapitalize="words"
-                autoCorrect="off"
-                spellCheck="false"
-                enterKeyHint="go"
-                aria-describedby={`player-${index + 1}-hint`}
-              />
+        {names.slice(0, config.playerCount).map((name, index) => {
+          const bot = config.bots?.[index] ?? null;
+          const fallback = bot ? BOT_NAMES[bot] : `Player ${index + 1}`;
+          return (
+            <div className={`setup__field setup__field--p${index + 1}`} key={index}>
+              <div className="setup__row">
+                <label className="setup__label label" htmlFor={`player-${index + 1}-name`}>
+                  Player {index + 1}
+                </label>
+                <select
+                  className="setup__seat"
+                  aria-label={`Player ${index + 1} type`}
+                  value={bot ?? ''}
+                  onChange={setSeat(index)}
+                >
+                  {SEAT_TYPES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="setup__control">
+                <span className="setup__avatar" aria-hidden="true">
+                  {(name.trim().charAt(0) || String(index + 1)).toUpperCase()}
+                </span>
+                <input
+                  id={`player-${index + 1}-name`}
+                  className="setup__input"
+                  type="text"
+                  name={`player-${index + 1}-name`}
+                  value={name}
+                  onChange={update(index)}
+                  placeholder={fallback}
+                  maxLength={MAX_NAME_LENGTH}
+                  autoComplete="off"
+                  autoCapitalize="words"
+                  autoCorrect="off"
+                  spellCheck="false"
+                  enterKeyHint="go"
+                  aria-describedby={`player-${index + 1}-hint`}
+                />
+              </div>
+              <p className="setup__hint" id={`player-${index + 1}-hint`}>
+                Leave empty to use “{fallback}”.
+              </p>
             </div>
-            <p className="setup__hint" id={`player-${index + 1}-hint`}>
-              Leave empty to use “Player {index + 1}”.
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="setup__options">

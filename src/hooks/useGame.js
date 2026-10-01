@@ -25,6 +25,7 @@ import {
   createGame,
   evaluateRoll,
   getCurrentPlayer,
+  getBotLevel,
   getTargetScore,
   nextPlayerIndex,
   normalizeConfig,
@@ -35,6 +36,7 @@ import {
   settleTurn,
   toSetup,
 } from '../utils/gameLogic.js';
+import { MOVE, decideMove } from '../utils/bot.js';
 import { clearGame, loadConfig, loadGame, saveConfig, saveGame } from '../services/storage.js';
 import { SOUND } from '../services/sound.js';
 import { useSound } from './useSound.jsx';
@@ -47,6 +49,7 @@ export const TIMINGS = {
   bankPause: 650, // short beat so the secured points register before the next turn
   winReveal: 900, // beat between the winning bank and the winner screen
   notice: 1700, // default toast lifetime
+  botThink: 800, // pause before a computer player acts
 };
 
 /** Which top-level screen is visible. Derived — never stored. */
@@ -110,6 +113,11 @@ export function useGame({ storage = true } = {}) {
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((id) => clearTimeout(id));
     timersRef.current.clear();
+  }, []);
+
+  const cancelTimer = useCallback((id) => {
+    clearTimeout(id);
+    timersRef.current.delete(id);
   }, []);
 
   /**
@@ -188,7 +196,7 @@ export function useGame({ storage = true } = {}) {
   );
 
   /** Roll the die. Resolves after the tumble animation has committed. */
-  const roll = useCallback(() => {
+  const performRoll = useCallback(() => {
     const current = stateRef.current;
     if (guardRef.current || !canRollLogic(current)) return; // anti double-click
     guardRef.current = true;
@@ -233,7 +241,7 @@ export function useGame({ storage = true } = {}) {
   }, [play, reducedMotion, schedule, showNotice]);
 
   /** Bank the pot: secure the points and end the turn (or win). */
-  const bank = useCallback(() => {
+  const performBank = useCallback(() => {
     const current = stateRef.current;
     if (guardRef.current || !canBankLogic(current)) return; // anti double-click / empty pot
     guardRef.current = true;
@@ -259,6 +267,42 @@ export function useGame({ storage = true } = {}) {
     // Short beat so the secured points are seen, then the next player may act.
     schedule(() => setState((previous) => settleTurn(previous)), TIMINGS.bankPause);
   }, [play, schedule, showNotice]);
+
+  // Human-facing actions: the computer's seat cannot be driven from the keyboard or buttons.
+  const roll = useCallback(() => {
+    if (getBotLevel(stateRef.current)) return;
+    performRoll();
+  }, [performRoll]);
+
+  const bank = useCallback(() => {
+    if (getBotLevel(stateRef.current)) return;
+    performBank();
+  }, [performBank]);
+
+  // Computer turns: after a short "thinking" beat the bot rolls or banks. Every
+  // state change (a roll landing, the turn settling) re-runs this, so a bot
+  // keeps going until it banks or busts. Switching away cancels the pending move.
+  const botLevel = getBotLevel(state);
+  useEffect(() => {
+    if (!botLevel || state.status !== GAME_STATUS.PLAYING) return undefined;
+    const id = schedule(() => {
+      const current = stateRef.current;
+      if (getBotLevel(current) !== botLevel || current.status !== GAME_STATUS.PLAYING) return;
+      if (decideMove(current) === MOVE.BANK) performBank();
+      else performRoll();
+    }, TIMINGS.botThink);
+    return () => cancelTimer(id);
+  }, [
+    botLevel,
+    state.status,
+    state.currentPlayer,
+    state.turnScore,
+    state.rollCount,
+    schedule,
+    cancelTimer,
+    performRoll,
+    performBank,
+  ]);
 
   /** Play again with the same players. */
   const playAgain = useCallback(() => {
@@ -353,8 +397,9 @@ export function useGame({ storage = true } = {}) {
       isRolling: state.status === GAME_STATUS.ROLLING,
       isAnimating: state.status === GAME_STATUS.ROLLING || state.status === GAME_STATUS.SWITCHING,
       // permissions
-      canRoll: canRollLogic(state),
-      canBank: canBankLogic(state),
+      canRoll: canRollLogic(state) && !botLevel,
+      canBank: canBankLogic(state) && !botLevel,
+      isBotTurn: Boolean(botLevel),
       // feedback
       notice,
       dismissNotice,
@@ -378,6 +423,7 @@ export function useGame({ storage = true } = {}) {
       muted,
       soundEnabled,
       toggleMuted,
+      botLevel,
       startGame,
       roll,
       bank,
