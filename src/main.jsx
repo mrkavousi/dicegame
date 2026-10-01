@@ -15,9 +15,9 @@ import '@fontsource/vazirmatn/latin-400.css';
 import '@fontsource/vazirmatn/latin-700.css';
 import '@fontsource/vazirmatn/latin-800.css';
 
-import './styles/index.css';
-import App from './App.jsx';
-import { SoundProvider } from './hooks/useSound.jsx';
+import './shared/styles/index.css';
+import App from './games/pig/PigGame.jsx';
+import { SoundProvider } from './shared/hooks/useSound.jsx';
 
 const container = document.getElementById('root');
 
