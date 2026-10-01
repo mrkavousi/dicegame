@@ -22,6 +22,8 @@ const strings = {
     'game.memory.desc': 'Flip two cards at a time and find all the matching pairs!',
     'game.hunt.name': 'Treasure Hunt',
     'game.hunt.desc': 'Dig up gems and bank them — but watch out for trapdoors!',
+    'game.dots.name': 'Dots & Boxes',
+    'game.dots.desc': 'Draw lines between dots and close boxes to make them yours!',
   },
   fa: {
     'hub.brand': 'سرای بازی',
@@ -43,6 +45,8 @@ const strings = {
     'game.memory.desc': 'هر بار دو کارت را برگردان و همهٔ جفت‌های یکسان را پیدا کن!',
     'game.hunt.name': 'شکار گنج',
     'game.hunt.desc': 'جواهرها را پیدا کن و بانک کن — اما مراقب دریچه‌های تله باش!',
+    'game.dots.name': 'نقطه و جعبه',
+    'game.dots.desc': 'بین نقطه‌ها خط بکش و جعبه‌ها را ببند تا مال تو شوند!',
   },
 };
 

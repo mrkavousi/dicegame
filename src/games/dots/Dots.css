@@ -1,0 +1,332 @@
+/* Dots & Boxes — layout, board, lines and boxes. */
+
+.dab,
+.dab-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+}
+
+.dab-setup {
+  padding-block: var(--space-2) var(--space-8);
+}
+
+.dab-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-2xl);
+  background: var(--player-1-pale);
+  box-shadow: 0 6px 0 var(--player-1-color);
+  color: var(--player-1-ink);
+  text-align: center;
+}
+
+.dab-hero__icon svg {
+  width: 56px;
+  height: 56px;
+  color: var(--player-1-dark);
+}
+
+.dab-hero__title {
+  font-size: clamp(2rem, 11vw, 2.75rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.dab-hero__tagline {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.dab-setup__heading {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- players --- */
+
+.dab-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--space-2);
+}
+
+.dab-player {
+  --who: var(--player-1-color);
+  --who-dark: var(--player-1-dark);
+  --who-pale: var(--player-1-pale);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+}
+
+.dab-player--p1 {
+  --who: var(--player-1-color);
+  --who-dark: var(--player-1-dark);
+  --who-pale: var(--player-1-pale);
+  --who-ink: var(--player-1-ink);
+}
+
+.dab-player--p2 {
+  --who: var(--player-2-color);
+  --who-dark: var(--player-2-dark);
+  --who-pale: var(--player-2-pale);
+  --who-ink: var(--player-2-ink);
+}
+
+.dab-player--p3 {
+  --who: var(--player-3-color);
+  --who-dark: var(--player-3-dark);
+  --who-pale: var(--player-3-pale);
+  --who-ink: var(--player-3-ink);
+}
+
+.dab-player--p4 {
+  --who: var(--player-4-color);
+  --who-dark: var(--player-4-dark);
+  --who-pale: var(--player-4-pale);
+  --who-ink: var(--player-4-ink);
+}
+
+.dab-player.is-active {
+  border-color: var(--who);
+  background: var(--who-pale);
+  box-shadow: 0 4px 0 var(--who-dark);
+}
+
+.dab-player__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dab-player__score {
+  margin-inline-start: auto;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.dab-turn {
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.dab-message {
+  min-height: 1.5em;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.dab-message--box {
+  color: var(--color-brand-ink);
+}
+
+.dab-keys {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- board --- */
+
+.dab-board {
+  --dot: 20px;
+  --c: var(--color-border-strong);
+
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--dot) 1fr) var(--dot);
+  grid-template-rows: repeat(var(--n), var(--dot) 1fr) var(--dot);
+  width: 100%;
+  aspect-ratio: 1;
+  padding: var(--space-3);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-muted);
+  box-sizing: border-box;
+}
+
+.dab-board--5 {
+  --dot: 16px;
+}
+
+.dab-board--6 {
+  --dot: 14px;
+}
+
+.dab-dot {
+  align-self: center;
+  justify-self: center;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: var(--color-text);
+}
+
+.dab-box {
+  display: grid;
+  place-items: center;
+  margin: 2px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+}
+
+.dab-box.is-new {
+  animation: dab-pop 0.45s var(--ease-pop) 1;
+}
+
+.dab-edge {
+  --c: var(--color-border-strong);
+
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dab-edge::before {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  background: var(--c);
+  opacity: 0.55;
+  transition: opacity var(--dur-fast) linear;
+}
+
+/* A generous invisible hit area so thin lines are easy to tap. */
+.dab-edge::after {
+  content: '';
+  position: absolute;
+}
+
+.dab-edge--h::before {
+  inset: 50% 2px auto;
+  height: 6px;
+  transform: translateY(-50%);
+}
+
+.dab-edge--h::after {
+  inset: -8px 0;
+}
+
+.dab-edge--v::before {
+  inset: 2px auto 2px 50%;
+  width: 6px;
+  transform: translateX(-50%);
+}
+
+.dab-edge--v::after {
+  inset: 0 -8px;
+}
+
+.dab-edge:not(:disabled):hover::before,
+.dab-edge:not(:disabled):focus-visible::before {
+  --c: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.dab-edge:focus-visible {
+  outline: none;
+}
+
+.dab-edge:focus-visible::before {
+  box-shadow: 0 0 0 3px var(--color-focus);
+}
+
+.dab-edge:disabled {
+  cursor: default;
+}
+
+.dab-edge.is-drawn::before {
+  opacity: 1;
+}
+
+.dab-edge[data-owner='0'] {
+  --c: var(--player-1-color);
+}
+.dab-box[data-owner='0'] {
+  background: var(--player-1-pale);
+  color: var(--player-1-ink);
+  box-shadow: inset 0 0 0 3px var(--player-1-color);
+}
+
+.dab-edge[data-owner='1'] {
+  --c: var(--player-2-color);
+}
+.dab-box[data-owner='1'] {
+  background: var(--player-2-pale);
+  color: var(--player-2-ink);
+  box-shadow: inset 0 0 0 3px var(--player-2-color);
+}
+
+.dab-edge[data-owner='2'] {
+  --c: var(--player-3-color);
+}
+.dab-box[data-owner='2'] {
+  background: var(--player-3-pale);
+  color: var(--player-3-ink);
+  box-shadow: inset 0 0 0 3px var(--player-3-color);
+}
+
+.dab-edge[data-owner='3'] {
+  --c: var(--player-4-color);
+}
+.dab-box[data-owner='3'] {
+  background: var(--player-4-pale);
+  color: var(--player-4-ink);
+  box-shadow: inset 0 0 0 3px var(--player-4-color);
+}
+
+.dab-edge.is-new.is-drawn::before {
+  animation: dab-flash 0.5s ease-out 1;
+}
+
+@keyframes dab-pop {
+  from {
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes dab-flash {
+  from {
+    background: var(--color-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dab-box.is-new,
+  .dab-edge.is-new.is-drawn::before {
+    animation: none;
+  }
+
+  .dab-edge::before {
+    transition: none;
+  }
+}

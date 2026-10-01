@@ -7,6 +7,7 @@ import '../../src/casino/strings.js';
 import '../../src/games/connect4/strings.js';
 import '../../src/games/memory/strings.js';
 import '../../src/games/hunt/strings.js';
+import '../../src/games/dots/strings.js';
 
 const placeholders = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 

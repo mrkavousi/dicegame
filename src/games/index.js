@@ -23,6 +23,7 @@ import PigGame from './pig/PigGame.jsx';
 import { Connect4Icon } from './connect4/icon.jsx';
 import { MemoryIcon } from './memory/icon.jsx';
 import { HuntIcon } from './hunt/icon.jsx';
+import { DotsIcon } from './dots/icon.jsx';
 
 const ENTRIES = [
   {
@@ -56,6 +57,14 @@ const ENTRIES = [
     ages: { from: 7 },
     players: { min: 2, max: 4 },
     load: () => import('./hunt/HuntGame.jsx'),
+  },
+  {
+    id: 'dots',
+    icon: DotsIcon,
+    accent: 2,
+    ages: { from: 8 },
+    players: { min: 2, max: 4 },
+    load: () => import('./dots/DotsGame.jsx'),
   },
 ];
 

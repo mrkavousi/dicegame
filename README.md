@@ -10,8 +10,8 @@ No betting, no money, no accounts, no ads — everything stays on your device.
 | **Connect Four** — drop discs, connect four in a row | ✅ playable | 2 (or vs computer) | 6+ |
 | **Memory Match** — flip cards, find the pairs | ✅ playable | 1–4 | 6+ |
 | **Treasure Hunt** — dig up gems, bank them, dodge trapdoors | ✅ playable | 2–4 | 7+ |
-| Dots & Boxes | 🔜 next | 2–4 | 8+ |
-| Mancala | 🔜 planned | 2 (or vs computer) | 8+ |
+| **Dots & Boxes** — connect dots, close boxes | ✅ playable | 2–4 | 8+ |
+| Mancala | 🔜 next | 2 (or vs computer) | 8+ |
 
 Built mobile-first with React + Vite, pure rules engines (one per game), and a
 chunky, flat, playful visual language driven by design tokens. English and Persian
@@ -187,6 +187,34 @@ only points**. A 5×5 field of tiles hides gems (worth 1, 2 or 3) and a few trap
 
 ---
 
+## Dots & Boxes
+
+A grid of dots. On your turn **draw one line** between two neighbouring dots. Draw the
+**4th side of a box** and it is yours (+1 point) — and you **go again**. Otherwise the turn
+passes. When every line is drawn, the most boxes wins (ties are shared). There is no luck
+in the rules at all.
+
+* **Setup** — 2–4 players, each a person or a computer (Easy / Normal / Hard), and a board:
+  *Small* 3×3, *Medium* 4×4, *Large* 5×5, *Huge* 6×6 boxes.
+* **Computer** (`src/games/dots/bot.js`) —
+  *Easy* takes a box when it can, otherwise draws a random line.
+  *Normal* takes boxes (the biggest bite first), then prefers **safe** lines that don't hand
+  the next player a third side; when every line gives something away it gives away the least.
+  *Hard* plays like Normal until at most 14 lines are left, then (with two players) **solves
+  the rest of the game exactly** with a memoised search, so it finds the classic sacrifices —
+  declining the last two boxes of a chain to keep control. Tests check its choice against an
+  independent brute-force search.
+* **Controls** — tap a line, or Tab + Enter/Space; the **arrow keys** hop between lines of
+  the same kind (left/right swap in Persian). Lines have a generous invisible hit area, so
+  they are easy to tap on a phone. Input is locked on the computer's turn.
+* **Saved automatically** (`dots.game.v1`); boxes and scores are recomputed from the saved
+  lines, so a tampered save can't invent points.
+* Stars: +3 for a win, +1 for a tie or when the computer wins.
+* **Code** — `engine.js` (pure; geometry helpers `boxEdges`, `edgeBoxes`, `completes`),
+  `bot.js` (pure), `useDots.js`, `DotsGame.jsx` + `components/Board.jsx`, `strings.js`, `icon.jsx`.
+
+---
+
 ## Pig — game rules
 
 | # | Rule |
@@ -287,6 +315,7 @@ src/
 │   └── strings.js             # hub + game-card text (EN/FA)
 ├── games/
 │   ├── index.js               # the game registry (add a game = one entry)
+│   ├── dots/                  # Dots & Boxes: engine.js, bot.js, useDots.js, DotsGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── hunt/                  # Treasure Hunt: engine.js, bot.js, useHunt.js, HuntGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── memory/                # Memory Match: engine.js, bot.js, useMemory.js, MemoryGame.jsx, components/{Board,Glyph}.jsx, strings.js, icon.jsx
 │   ├── connect4/              # Connect Four: engine.js, bot.js, useConnectFour.js, Connect4Game.jsx, components/Board.jsx, strings.js, icon.jsx
@@ -499,7 +528,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-363 tests across 27 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+418 tests across 30 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -533,6 +562,11 @@ npm test
   a random player from both seats, Hard beats Easy) and the UI (setup, lock while a disc
   falls, 1–7 keys, win/draw banners, rematch, stars, computer turns, resume after reload,
   corrupted save, Persian).
+* **`tests/games/dots.*.test.js(x)`** — the engine (geometry for every board size, one line
+  completing two boxes, extra turns, ties, rematch rotation, validated save/restore), the bot
+  (takes boxes, avoids third sides, gives away the least, Hard's exact solver agrees with an
+  independent brute-force search, Normal beats Easy) and the UI (setup, drawing, scoring, a full
+  game, arrow keys, computer turns incl. a computer win, resume, bad saves, Persian).
 * **`tests/games/hunt.*.test.js(x)`** — the engine (public composition, gem/trapdoor/bank rules,
   input lock, auto-bank on the last gem, ties, rematch rotation, validated save/restore incl.
   tampered fields), the bot (break-even maths, level thresholds, never peeks at hidden tiles,
