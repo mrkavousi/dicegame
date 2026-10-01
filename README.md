@@ -32,6 +32,25 @@ Requires **Node 18+**.
 
 ---
 
+## Install & offline (PWA)
+
+PIG is an installable Progressive Web App. Build and serve it
+(`npm run build && npm run preview`), then use your browser's *Install app* /
+*Add to Home Screen*. A service worker (via `vite-plugin-pwa`, Workbox) precaches
+the whole app shell — JS, CSS, icons and the bundled fonts — so after the first
+visit it **works fully offline**, and updates itself silently when you deploy a
+new build.
+
+* Config: the `VitePWA(...)` block in `vite.config.js` (manifest, theme colour,
+  precache globs). It is skipped under Vitest.
+* Icons live in `public/` (`icon-192.png`, `icon-512.png`, a maskable
+  `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon.svg`).
+* The service worker only runs in the production build, not in `npm run dev`.
+* To check offline mode: preview the build, open DevTools → Application →
+  Service Workers, tick *Offline* and reload.
+
+---
+
 ## Languages (English · فارسی)
 
 The header button (**فا** / **EN**) switches the whole interface between
@@ -182,6 +201,7 @@ tests/
 ├── gameLogic.test.js          # 45 rules/anti-bug/persistence tests
 ├── settings.test.js           # 14 config / target score / N-player / two-dice engine tests
 ├── settings.test.jsx          # 4 settings-screen UI flow tests
+├── pwa.test.js                # 2 PWA asset checks
 ├── i18n.test.js               # 8 dictionary-parity + translator tests
 ├── i18n.test.jsx              # 6 language-switch / RTL / Persian-play UI tests
 ├── bot.test.js                # 12 bot config + strategy tests
@@ -381,7 +401,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-146 tests across eleven files, all deterministic (the die is injected, never random):
+148 tests across twelve files, all deterministic (the die is injected, never random):
 
 * **`tests/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
