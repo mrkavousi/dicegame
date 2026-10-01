@@ -9,10 +9,12 @@
  */
 
 import { GAME_STATUS, normalizeConfig, restoreGame } from '../utils/gameLogic.js';
+import { emptyStats, normalizeStats } from '../utils/stats.js';
 
 const GAME_KEY = 'pig.game.v1';
 const SETTINGS_KEY = 'pig.settings.v1';
 const CONFIG_KEY = 'pig.config.v1';
+const STATS_KEY = 'pig.stats.v1';
 
 /** localStorage may be missing (SSR / tests) or throw (private mode). */
 function getStore() {
@@ -78,6 +80,29 @@ export function clearGame() {
   if (!store) return;
   try {
     store.removeItem(GAME_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** @returns {ReturnType<typeof emptyStats>} lifetime stats (empty when none are stored) */
+export function loadStats() {
+  const store = getStore();
+  if (!store) return emptyStats();
+  try {
+    const raw = store.getItem(STATS_KEY);
+    return raw ? normalizeStats(JSON.parse(raw)) : emptyStats();
+  } catch {
+    return emptyStats();
+  }
+}
+
+/** @param {ReturnType<typeof emptyStats>} stats */
+export function saveStats(stats) {
+  const store = getStore();
+  if (!store) return;
+  try {
+    store.setItem(STATS_KEY, JSON.stringify(stats));
   } catch {
     /* ignore */
   }

@@ -6,12 +6,15 @@ import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   TARGET_SCORES,
+  SERIES_LENGTHS,
   VARIANT,
 } from '../../utils/gameLogic.js';
 import { Button } from '../UI/Button.jsx';
 import './PlayerSetup.css';
 
 const PLAYER_COUNTS = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => MIN_PLAYERS + i);
+
+const SERIES_LABELS = { 1: 'Single game', 3: 'Best of 3', 5: 'Best of 5' };
 
 const VARIANTS = [
   { value: VARIANT.CLASSIC, label: 'Classic' },
@@ -157,6 +160,13 @@ export function PlayerSetup({ initialNames = [], config, onConfigChange, onStart
           options={VARIANTS}
           value={config.variant}
           onChange={setOption('variant')}
+        />
+        <ChoiceGroup
+          legend="Match"
+          name="series-length"
+          options={SERIES_LENGTHS.map((length) => ({ value: length, label: SERIES_LABELS[length] }))}
+          value={config.seriesLength ?? 1}
+          onChange={setOption('seriesLength')}
         />
       </div>
 

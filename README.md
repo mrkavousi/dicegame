@@ -52,6 +52,7 @@ Chosen on the start screen and remembered between visits (`pig.config.v1`).
 | Seat type | each player is **Human** or a **computer** (Easy / Normal / Hard) |
 | Play to | 50, 100, 150 or 200 points |
 | Variant | **Classic** (one die) or **Two dice** |
+| Match | **Single game**, **Best of 3** or **Best of 5** |
 
 ### Computer opponent
 
@@ -69,6 +70,26 @@ bot-vs-bot (a spectator game) works too. The strategy lives in the pure module
 
 All levels always roll an empty pot and always bank a pot that wins the game.
 
+### Best-of series
+
+In a best-of-3 / best-of-5 match the board shows the series score. After each
+game the winner screen offers **Next game** (scores reset, series score carries
+over, and the starting player rotates). When someone takes the series, the
+screen says *wins the match* and **Play again** starts a fresh series.
+
+### Undo
+
+Took the points too early? **Undo bank** (or `U`) puts the pot back and returns
+the turn to you — until the next player rolls. It is a hot-seat feature and is
+not offered in games with a computer player.
+
+### Lifetime stats
+
+The bar-chart button in the header opens a leaderboard of every human who has
+finished a game on this device: wins, games, bust rate and best turn. Names are
+matched case-insensitively, computer players are not tracked, and **Reset stats**
+clears it. Stored under `pig.stats.v1`.
+
 **Two-dice variant:** each roll uses two dice. Both dice are added to the pot,
 except: a single **1** burns the pot (turn ends), and **two 1s** ("snake eyes")
 wipe the pot *and* your whole total score.
@@ -85,6 +106,7 @@ destroys all 15 points.
 |--------|---------|
 | Roll the die | **ROLL DICE** button or `R` |
 | Bank the pot | **BANK POINTS** button or `B` |
+| Undo the last bank | **UNDO BANK** button or `U` |
 | Mute / unmute | speaker icon in the header or `M` |
 | Again / leave the match | restart icon in the header, `PLAY AGAIN`, `MAIN MENU` |
 
@@ -122,7 +144,7 @@ src/
 │   ├── useSound.jsx           # SoundProvider + mute state
 │   └── useReducedMotion.js    # live prefers-reduced-motion
 ├── services/
-│   ├── storage.js             # guard-wrapped localStorage (game + settings)
+│   ├── storage.js             # guard-wrapped localStorage (game, settings, config, stats)
 │   └── sound.js               # Web Audio cue synthesis (no audio files needed)
 ├── styles/
 │   ├── tokens.css             # design tokens: colour, type, space, lips, motion
@@ -131,6 +153,7 @@ src/
 ├── utils/
 │   ├── bot.js                 # pure computer-opponent strategy (decideMove)
 │   ├── gameLogic.js           # pure rules — no React, no DOM, no timers
+│   ├── stats.js               # pure lifetime-stats aggregation (recordGame, leaderboard)
 │   └── random.js              # injectable RNG + seeded RNG for tests
 └── App.jsx                    # shell + view routing
 tests/
@@ -139,6 +162,8 @@ tests/
 ├── settings.test.jsx          # 4 settings-screen UI flow tests
 ├── bot.test.js                # 12 bot config + strategy tests
 ├── bot.test.jsx               # 4 end-to-end computer-turn tests
+├── series.test.js             # 11 series + lifetime-stats engine tests
+├── series.test.jsx            # 9 undo / series / stats-modal UI tests
 ├── App.test.jsx               # 22 end-to-end flow tests through the real UI
 ├── Dice.test.jsx              # 11 die rendering/a11y tests
 └── setup.js                   # jsdom environment shims
@@ -320,7 +345,8 @@ The match is mirrored to `localStorage` (`pig.game.v1`) after every state change
 and re-validated on load by `restoreGame`, which repairs tampered or
 half-written payloads. Refresh mid-match and you resume where you left off;
 `NEW GAME` (header ⌫ / `MAIN MENU`) clears the saved match deliberately, and
-asks for confirmation first. Mute preference lives in `pig.settings.v1`.
+asks for confirmation first. Mute preference lives in `pig.settings.v1`, the last-used game settings in
+`pig.config.v1` and lifetime stats in `pig.stats.v1`.
 Storage failures (private mode, quota) degrade silently to an in-memory game.
 
 ---
@@ -331,7 +357,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-112 tests across seven files, all deterministic (the die is injected, never random):
+132 tests across nine files, all deterministic (the die is injected, never random):
 
 * **`tests/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -348,6 +374,9 @@ npm test
 * **`tests/bot.test.js` / `.jsx`** — bot seats in the config, default bot names,
   every strategy rule, and full computer turns through the real UI (rolling to
   the threshold, banking, busting, and the keyboard being locked out).
+* **`tests/series.test.js` / `.jsx`** — best-of-N bookkeeping (wins, next game,
+  starting-seat rotation, legacy-save upgrade), stats aggregation and the
+  leaderboard, plus the undo button/key and the stats modal through the real UI.
 * **`tests/Dice.test.jsx`** — pip rendering for all six faces, mood classes,
   landing replay and the accessible labels.
 

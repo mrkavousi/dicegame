@@ -226,3 +226,10 @@
 .winner__dot--p4 {
   background: var(--player-4-color);
 }
+
+.winner__series {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-secondary);
+}

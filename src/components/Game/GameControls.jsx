@@ -19,6 +19,8 @@ const TEMPTING_POT = 20;
  * @param {number} [props.targetScore] points needed to win
  * @param {boolean} props.isRolling
  * @param {boolean} props.isSwitching
+ * @param {boolean} [props.canUndo] the last bank can be taken back
+ * @param {() => void} [props.onUndo]
  * @param {string|null} [props.botName] set while a computer player is taking its turn
  */
 export function GameControls({
@@ -30,6 +32,8 @@ export function GameControls({
   isRolling,
   isSwitching,
   botName = null,
+  canUndo = false,
+  onUndo,
   onRoll,
   onBank,
 }) {
@@ -70,6 +74,12 @@ export function GameControls({
       >
         {wouldWin ? 'Bank & win' : 'Bank points'}
       </Button>
+
+      {canUndo ? (
+        <Button variant="ghost" onClick={onUndo} shortcut="U" aria-label="Undo last bank">
+          Undo bank
+        </Button>
+      ) : null}
 
       <p className="controls__hint" role="status">
         {hint}

@@ -44,6 +44,16 @@ export function RestartIcon(props) {
   );
 }
 
+export function ChartIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 20V11" />
+      <path d="M12 20V4" />
+      <path d="M19 20v-6" />
+    </svg>
+  );
+}
+
 export function HomeIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -101,7 +111,11 @@ export function CloseIcon(props) {
 export function SparkIcon(props) {
   return (
     <svg {...base} {...props}>
-      <path d="M12 3.5 13.6 9l5.4 1.6-5.4 1.6L12 17.6 10.4 12.2 5 10.6 10.4 9 12 3.5Z" fill="currentColor" stroke="none" />
+      <path
+        d="M12 3.5 13.6 9l5.4 1.6-5.4 1.6L12 17.6 10.4 12.2 5 10.6 10.4 9 12 3.5Z"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }

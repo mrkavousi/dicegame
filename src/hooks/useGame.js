@@ -26,6 +26,7 @@ import {
   evaluateRoll,
   getCurrentPlayer,
   getBotLevel,
+  getSeriesWinner,
   getTargetScore,
   nextPlayerIndex,
   normalizeConfig,
@@ -37,7 +38,8 @@ import {
   toSetup,
 } from '../utils/gameLogic.js';
 import { MOVE, decideMove } from '../utils/bot.js';
-import { clearGame, loadConfig, loadGame, saveConfig, saveGame } from '../services/storage.js';
+import { clearGame, loadConfig, loadGame, loadStats, saveConfig, saveGame, saveStats } from '../services/storage.js';
+import { emptyStats, recordGame } from '../utils/stats.js';
 import { SOUND } from '../services/sound.js';
 import { useSound } from './useSound.jsx';
 
@@ -88,12 +90,16 @@ export function useGame({ storage = true } = {}) {
   });
 
   const [notice, setNotice] = useState(null);
+  const [lifetimeStats, setLifetimeStats] = useState(() => (storage ? loadStats() : emptyStats()));
+  // The position just before the last human bank — lets that one bank be taken back.
+  const [undoSnapshot, setUndoSnapshot] = useState(null);
   const [winnerRevealed, setWinnerRevealed] = useState(() => state.status === GAME_STATUS.WON);
   const { play, muted, toggleMuted, soundEnabled } = useSound();
 
   // ---- refs ----------------------------------------------------------------
   const stateRef = useRef(state);
   const guardRef = useRef(false);
+  const statsRef = useRef(lifetimeStats);
   const timersRef = useRef(new Set());
   const generationRef = useRef(0);
   const noticeTimerRef = useRef(null);
@@ -187,6 +193,7 @@ export function useGame({ storage = true } = {}) {
       clearTimers();
       dismissNotice();
       setWinnerRevealed(false);
+      setUndoSnapshot(null);
       const next = createGame({ playerNames: names, status: GAME_STATUS.PLAYING, config: rules });
       stateRef.current = next;
       setState(next);
@@ -254,8 +261,19 @@ export function useGame({ storage = true } = {}) {
     setState(next);
     play(SOUND.BANK);
 
-    // Winning bank: the winner screen takes over (see the WON effect).
-    if (next.status === GAME_STATUS.WON) return;
+    // Winning bank: record the result; the winner screen takes over (see the WON effect).
+    if (next.status === GAME_STATUS.WON) {
+      const updated = recordGame(statsRef.current, next);
+      statsRef.current = updated;
+      setLifetimeStats(updated);
+      if (storage) saveStats(updated);
+      setUndoSnapshot(null);
+      return;
+    }
+
+    // One-step undo is for hot-seat games; with a computer in the mix it would
+    // be racing the bot's turn.
+    setUndoSnapshot(current.config.bots.some(Boolean) ? null : current);
 
     showNotice({
       tone: NOTICE_TONE.BANK,
@@ -266,7 +284,7 @@ export function useGame({ storage = true } = {}) {
 
     // Short beat so the secured points are seen, then the next player may act.
     schedule(() => setState((previous) => settleTurn(previous)), TIMINGS.bankPause);
-  }, [play, schedule, showNotice]);
+  }, [play, schedule, showNotice, storage]);
 
   // Human-facing actions: the computer's seat cannot be driven from the keyboard or buttons.
   const roll = useCallback(() => {
@@ -304,13 +322,48 @@ export function useGame({ storage = true } = {}) {
     performBank,
   ]);
 
+  /**
+   * Take back the last bank (hot-seat games only): valid from the moment the
+   * points are secured until the next player rolls.
+   */
+  const canUndo =
+    undoSnapshot !== null &&
+    !botLevel &&
+    state.status !== GAME_STATUS.WON &&
+    state.status !== GAME_STATUS.ROLLING &&
+    state.rollCount === undoSnapshot.rollCount &&
+    state.turnCount === undoSnapshot.turnCount + 1;
+
+  const undo = useCallback(() => {
+    const current = stateRef.current;
+    if (!undoSnapshot || guardRef.current) return;
+    if (current.status === GAME_STATUS.WON || current.status === GAME_STATUS.ROLLING) return;
+    if (current.rollCount !== undoSnapshot.rollCount || current.turnCount !== undoSnapshot.turnCount + 1) return;
+    generationRef.current += 1; // cancels the pending hand-over timer
+    clearTimers();
+    dismissNotice();
+    stateRef.current = undoSnapshot;
+    setState(undoSnapshot);
+    setUndoSnapshot(null);
+  }, [undoSnapshot, clearTimers, dismissNotice]);
+
+  /** Wipe the lifetime stats. */
+  const resetStats = useCallback(() => {
+    const cleared = emptyStats();
+    statsRef.current = cleared;
+    setLifetimeStats(cleared);
+    if (storage) saveStats(cleared);
+  }, [storage]);
+
   /** Play again with the same players. */
   const playAgain = useCallback(() => {
     generationRef.current += 1;
     clearTimers();
     dismissNotice();
     setWinnerRevealed(false);
-    setState((previous) => resetGame(previous, { keepNames: true }));
+    setUndoSnapshot(null);
+    // Mid-series this is "next game" (scores carry over); after the deciding game it starts a new series.
+    setState((previous) => resetGame(previous, { keepNames: true, nextGame: getSeriesWinner(previous) === null }));
   }, [clearTimers, dismissNotice]);
 
   /** Back to the player setup screen (names are kept as a convenience). */
@@ -319,6 +372,7 @@ export function useGame({ storage = true } = {}) {
     clearTimers();
     dismissNotice();
     setWinnerRevealed(false);
+    setUndoSnapshot(null);
     setState((previous) => toSetup(previous));
     clearGame();
   }, [clearTimers, dismissNotice]);
@@ -356,11 +410,14 @@ export function useGame({ storage = true } = {}) {
       } else if (key === 'b') {
         event.preventDefault();
         bank();
+      } else if (key === 'u') {
+        event.preventDefault();
+        undo();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [bank, roll, toggleMuted, winnerRevealed]);
+  }, [bank, roll, undo, toggleMuted, winnerRevealed]);
 
   /* ------------------------------------------------------------------ view */
 
@@ -400,6 +457,14 @@ export function useGame({ storage = true } = {}) {
       canRoll: canRollLogic(state) && !botLevel,
       canBank: canBankLogic(state) && !botLevel,
       isBotTurn: Boolean(botLevel),
+      canUndo,
+      undo,
+      lifetimeStats,
+      resetStats,
+      seriesWins: state.seriesWins,
+      gameNumber: state.gameNumber,
+      seriesLength: state.config.seriesLength,
+      seriesWinner: getSeriesWinner(state),
       // feedback
       notice,
       dismissNotice,
@@ -424,6 +489,10 @@ export function useGame({ storage = true } = {}) {
       soundEnabled,
       toggleMuted,
       botLevel,
+      canUndo,
+      undo,
+      lifetimeStats,
+      resetStats,
       startGame,
       roll,
       bank,

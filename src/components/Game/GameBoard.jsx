@@ -82,6 +82,13 @@ export function GameBoard({ game }) {
         </section>
 
         <section className="board__stage" aria-label="Current turn">
+          {game.seriesLength > 1 ? (
+            <p className="board__series">
+              Best of {game.seriesLength} · Game {game.gameNumber} ·{' '}
+              {players.map((player) => `${player.name} ${game.seriesWins[player.index]}`).join(' – ')}
+            </p>
+          ) : null}
+
           <p
             className={`board__turn board__turn--p${currentPlayerIndex + 1}`}
             key={`turn-${currentPlayerIndex}-${winner ? 'w' : ''}`}
@@ -107,6 +114,8 @@ export function GameBoard({ game }) {
             isRolling={isRolling}
             isSwitching={game.status === GAME_STATUS.SWITCHING}
             botName={game.isBotTurn ? current.name : null}
+            canUndo={game.canUndo}
+            onUndo={game.undo}
             onRoll={roll}
             onBank={bank}
           />
@@ -116,7 +125,7 @@ export function GameBoard({ game }) {
       <aside className="board__aside" aria-label="Recent activity">
         <GameHistory history={history} />
         <p className="board__keys">
-          Press <kbd>R</kbd> to roll · <kbd>B</kbd> to bank · <kbd>M</kbd> to mute
+          Press <kbd>R</kbd> to roll · <kbd>B</kbd> to bank · <kbd>U</kbd> to undo a bank · <kbd>M</kbd> to mute
         </p>
       </aside>
 

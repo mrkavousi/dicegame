@@ -40,10 +40,14 @@ function buildConfetti(count) {
  * @param {object} props.winner
  * @param {object[]} props.others everyone who did not win
  * @param {number} props.targetScore
+ * @param {object[]} props.players everyone, in seat order
+ * @param {{ length: number, wins: number[], gameNumber: number, winner: number|null }} props.series
  * @param {() => void} props.onPlayAgain
  * @param {() => void} props.onMainMenu
  */
-export function WinnerScreen({ winner, others, targetScore, onPlayAgain, onMainMenu }) {
+export function WinnerScreen({ winner, others, targetScore, players, series, onPlayAgain, onMainMenu }) {
+  const isSeries = series.length > 1;
+  const matchOver = series.winner !== null;
   const headingRef = useRef(null);
   const confetti = useMemo(() => buildConfetti(34), []);
 
@@ -77,16 +81,24 @@ export function WinnerScreen({ winner, others, targetScore, onPlayAgain, onMainM
           <TrophyIcon />
         </span>
 
-        <p className="winner__eyebrow label">Game over</p>
+        <p className="winner__eyebrow label">
+          {isSeries ? `Game ${series.gameNumber} of best of ${series.length}` : 'Game over'}
+        </p>
 
         <h1 className="winner__title" id="winner-title" tabIndex={-1} ref={headingRef}>
-          {winner.name} wins!
+          {winner.name} wins{isSeries && matchOver ? ' the match' : ''}!
         </h1>
 
         <p className="winner__score">
           <span className="winner__score-value">{winner.score}</span>
           <span className="winner__score-label label">points</span>
         </p>
+
+        {isSeries ? (
+          <p className="winner__series" aria-label="Series score">
+            {players.map((player) => `${player.name} ${series.wins[player.index]}`).join(' – ')}
+          </p>
+        ) : null}
 
         {others.map((loser) => (
           <p className="winner__loser" key={loser.id}>
@@ -108,7 +120,7 @@ export function WinnerScreen({ winner, others, targetScore, onPlayAgain, onMainM
 
         <div className="winner__actions">
           <Button variant="primary" size="lg" block onClick={onPlayAgain}>
-            Play again
+            {isSeries && !matchOver ? 'Next game' : 'Play again'}
           </Button>
           <Button variant="secondary" size="lg" block onClick={onMainMenu}>
             Main menu

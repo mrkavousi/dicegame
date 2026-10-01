@@ -5,6 +5,7 @@ import { StartScreen } from './components/Screens/StartScreen.jsx';
 import { WinnerScreen } from './components/Screens/WinnerScreen.jsx';
 import { GameBoard } from './components/Game/GameBoard.jsx';
 import { Modal } from './components/UI/Modal.jsx';
+import { StatsModal } from './components/Screens/StatsModal.jsx';
 
 /**
  * App shell + view routing.
@@ -15,6 +16,7 @@ import { Modal } from './components/UI/Modal.jsx';
 export default function App() {
   const game = useGame();
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const isPlaying = game.view === VIEW.GAME;
 
@@ -43,6 +45,8 @@ export default function App() {
         muted={game.muted}
         onToggleMute={game.toggleMuted}
         onRestart={requestRestart}
+        onShowStats={() => setShowStats(true)}
+        targetScore={game.targetScore}
         showRestart={game.view !== VIEW.SETUP}
       />
 
@@ -54,6 +58,13 @@ export default function App() {
             winner={game.winner}
             others={game.players.filter((player) => player.index !== game.winner.index)}
             targetScore={game.targetScore}
+            players={game.players}
+            series={{
+              length: game.seriesLength,
+              wins: game.seriesWins,
+              gameNumber: game.gameNumber,
+              winner: game.seriesWinner,
+            }}
             onPlayAgain={game.playAgain}
             onMainMenu={game.newGame}
           />
@@ -61,6 +72,13 @@ export default function App() {
           <GameBoard game={game} />
         )}
       </div>
+
+      <StatsModal
+        open={showStats}
+        stats={game.lifetimeStats}
+        onClose={() => setShowStats(false)}
+        onReset={game.resetStats}
+      />
 
       <Modal
         open={confirmRestart}

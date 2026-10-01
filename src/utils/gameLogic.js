@@ -43,6 +43,9 @@ export const VARIANT = Object.freeze({
   TWO_DICE: 'twoDice',
 });
 
+/** Selectable match lengths: 1 = single game, otherwise best-of-N. */
+export const SERIES_LENGTHS = Object.freeze([1, 3, 5]);
+
 /** Computer-opponent difficulty levels. */
 export const DIFFICULTY = Object.freeze({
   EASY: 'easy',
@@ -57,7 +60,7 @@ export const BOT_NAMES = Object.freeze({
   [DIFFICULTY.HARD]: 'Bot · Hard',
 });
 
-/** @typedef {{ targetScore: number, playerCount: number, variant: string, bots: Array<string|null> }} GameConfig */
+/** @typedef {{ targetScore: number, playerCount: number, variant: string, bots: Array<string|null>, seriesLength: number }} GameConfig */
 
 /** @type {GameConfig} */
 export const DEFAULT_CONFIG = Object.freeze({
@@ -66,6 +69,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   variant: VARIANT.CLASSIC,
   /** Per seat: null for a human, otherwise a DIFFICULTY. */
   bots: Object.freeze([null, null]),
+  /** 1 = single game; 3 / 5 = best-of-N series. */
+  seriesLength: 1,
 });
 
 /** How many log entries we keep in memory / storage. */
@@ -126,6 +131,7 @@ export function normalizeConfig(raw) {
     playerCount,
     variant: Object.values(VARIANT).includes(input.variant) ? input.variant : VARIANT.CLASSIC,
     bots,
+    seriesLength: SERIES_LENGTHS.includes(Number(input.seriesLength)) ? Number(input.seriesLength) : 1,
   };
 }
 
@@ -175,17 +181,19 @@ export function createPlayer(index, name, bot = null) {
 
 /**
  * Create a fresh game.
- * @param {{ playerNames?: string[], status?: string, rng?: () => number }} [options]
+ * @param {{ playerNames?: string[], status?: string, config?: object, seriesWins?: number[], gameNumber?: number }} [options]
  */
-export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING, config } = {}) {
+export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING, config, seriesWins, gameNumber } = {}) {
   const rules = normalizeConfig(config);
+  const number = clampInt(gameNumber, 1, 99, 1);
   return {
     status,
     config: rules,
     players: Array.from({ length: rules.playerCount }, (_, index) =>
       createPlayer(index, playerNames[index], rules.bots[index]),
     ),
-    currentPlayer: 0,
+    // The starting seat rotates from game to game inside a series.
+    currentPlayer: (number - 1) % rules.playerCount,
     turnScore: 0,
     diceValue: null,
     /** Both faces of the last roll in the two-dice variant, otherwise null. */
@@ -199,7 +207,26 @@ export function createGame({ playerNames = [], status = GAME_STATUS.PLAYING, con
     /** Newest-first log of notable events. */
     history: [],
     winnerIndex: null,
+    /** Games won per seat in the current series. */
+    seriesWins: Array.from({ length: rules.playerCount }, (_, index) => clampInt(seriesWins?.[index], 0, 99, 0)),
+    /** 1-based game counter within the series. */
+    gameNumber: number,
   };
+}
+
+/** Wins needed to take the series (1 for a single game). */
+export function seriesWinsNeeded(config) {
+  return Math.ceil((config?.seriesLength ?? 1) / 2);
+}
+
+/**
+ * Index of the player who has won the series, or null while it is still open.
+ * @param {object} state
+ */
+export function getSeriesWinner(state) {
+  const needed = seriesWinsNeeded(state.config);
+  const index = (state.seriesWins ?? []).findIndex((wins) => wins >= needed);
+  return index >= 0 ? index : null;
 }
 
 /** @param {object} state */
@@ -514,7 +541,12 @@ export function bankScore(state) {
 
   // ---- Winning bank ---------------------------------------------------------
   if (totalScore >= getTargetScore(state)) {
-    return { ...banked, winnerIndex: playerIndex, status: GAME_STATUS.WON };
+    return {
+      ...banked,
+      winnerIndex: playerIndex,
+      seriesWins: banked.seriesWins.map((wins, index) => (index === playerIndex ? wins + 1 : wins)),
+      status: GAME_STATUS.WON,
+    };
   }
 
   // ---- Normal bank: pot secured, turn passes --------------------------------
@@ -528,9 +560,19 @@ export function bankScore(state) {
  * @param {object} state
  * @param {{ keepNames?: boolean, playerNames?: string[], status?: string }} [options]
  */
-export function resetGame(state, { keepNames = true, playerNames, status = GAME_STATUS.PLAYING, config } = {}) {
+export function resetGame(
+  state,
+  { keepNames = true, playerNames, status = GAME_STATUS.PLAYING, config, nextGame = false } = {},
+) {
   const names = playerNames ?? (keepNames ? state.players.map((player) => player.name) : []);
-  return createGame({ playerNames: names, status, config: config ?? state.config });
+  return createGame({
+    playerNames: names,
+    status,
+    config: config ?? state.config,
+    // `nextGame` continues the series; otherwise a brand-new series begins.
+    seriesWins: nextGame ? state.seriesWins : undefined,
+    gameNumber: nextGame ? (state.gameNumber ?? 1) + 1 : 1,
+  });
 }
 
 /**
@@ -619,6 +661,11 @@ export function restoreGame(raw) {
       ? history.filter((entry) => entry && typeof entry.type === 'string').slice(0, HISTORY_LIMIT)
       : [],
     winnerIndex: finalWinner,
+    // A finished game always counts as a win for its winner (also upgrades legacy saves).
+    seriesWins: Array.from({ length: playerCount }, (_, index) =>
+      Math.max(clampScore(raw.seriesWins?.[index]), index === finalWinner ? 1 : 0),
+    ),
+    gameNumber: Math.max(1, Math.trunc(Number(raw.gameNumber) || 1)),
   };
 }
 
