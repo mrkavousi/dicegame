@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../../src/App.jsx';
 import { SoundProvider } from '../../src/shared/hooks/useSound.jsx';
@@ -30,11 +30,14 @@ describe('lobby', () => {
     }
   });
 
-  it('shows age and player hints on each card', () => {
+  it('shows age and player hints on each card, straight from the registry', () => {
     mountApp();
-    expect(screen.getAllByText('Ages 6+')).toHaveLength(GAMES.length);
-    expect(screen.getByText('Players: 2–4')).toBeInTheDocument(); // Pig
-    expect(screen.getByText('Players: 2')).toBeInTheDocument(); // Connect Four
+    for (const game of GAMES) {
+      const card = screen.getByRole('link', { name: new RegExp(`^${enName(game)}`) });
+      const { min, max } = game.players;
+      expect(within(card).getByText(`Ages ${game.ages.from}+`), game.id).toBeInTheDocument();
+      expect(within(card).getByText(`Players: ${min === max ? min : `${min}–${max}`}`), game.id).toBeInTheDocument();
+    }
   });
 
   it('opens a game from its card and comes back with the home button', () => {
@@ -71,7 +74,12 @@ describe('lobby', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Persian' }));
     expect(screen.getByRole('heading', { name: 'یک بازی انتخاب کن' })).toBeInTheDocument();
     expect(screen.getByLabelText('۰ ستاره')).toBeInTheDocument();
-    expect(screen.getAllByText('سن ۶+')).toHaveLength(GAMES.length);
+    for (const game of GAMES) {
+      const card = screen.getByRole('link', { name: new RegExp(`^${LANGUAGES.fa.dict[`game.${game.id}.name`]}`) });
+      expect(
+        within(card).getByText(`سن ${new Intl.NumberFormat('fa-IR').format(game.ages.from)}+`),
+      ).toBeInTheDocument();
+    }
   });
 
   it('loads saved stars and shows the wins on the Pig card', () => {

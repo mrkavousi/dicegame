@@ -20,6 +20,8 @@ const strings = {
     'game.connect4.desc': 'Drop discs and connect four in a row before your opponent does!',
     'game.memory.name': 'Memory Match',
     'game.memory.desc': 'Flip two cards at a time and find all the matching pairs!',
+    'game.hunt.name': 'Treasure Hunt',
+    'game.hunt.desc': 'Dig up gems and bank them — but watch out for trapdoors!',
   },
   fa: {
     'hub.brand': 'سرای بازی',
@@ -39,6 +41,8 @@ const strings = {
     'game.connect4.desc': 'دیسک بینداز و پیش از حریف چهارتا را در یک ردیف کن!',
     'game.memory.name': 'بازی حافظه',
     'game.memory.desc': 'هر بار دو کارت را برگردان و همهٔ جفت‌های یکسان را پیدا کن!',
+    'game.hunt.name': 'شکار گنج',
+    'game.hunt.desc': 'جواهرها را پیدا کن و بانک کن — اما مراقب دریچه‌های تله باش!',
   },
 };
 
