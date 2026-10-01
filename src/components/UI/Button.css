@@ -1,0 +1,177 @@
+/* ============================================================================
+   Button — chunky, hard-lipped, token-driven
+   ========================================================================== */
+
+.btn {
+  --btn-bg: var(--color-brand);
+  --btn-text: var(--white);
+  --btn-lip: var(--lip-3);
+  --btn-lip-width: 4px;
+  --btn-border: transparent;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  box-shadow: var(--btn-lip);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* no 300ms delay, no double-tap zoom */
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) linear,
+    filter var(--dur-fast) linear;
+}
+
+/* The press: the button travels down by exactly the lip height. */
+.btn:active:not(:disabled) {
+  transform: translateY(var(--btn-lip-width));
+  box-shadow: none;
+  filter: brightness(0.97);
+}
+
+.btn:disabled {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  box-shadow: none;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.btn__icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.btn__icon svg {
+  width: 1.4em;
+  height: 1.4em;
+}
+
+.btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn__kbd {
+  display: none;
+  margin-inline-start: var(--space-2);
+  padding: 2px 7px;
+  border: 2px solid currentColor;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------- variants --- */
+
+.btn--primary {
+  --btn-bg: var(--color-brand);
+  --btn-text: var(--white);
+  --btn-lip: 0 4px 0 var(--color-brand-dark);
+}
+
+.btn--bank {
+  --btn-bg: var(--color-accent);
+  --btn-text: var(--white);
+  --btn-lip: 0 4px 0 var(--color-accent-dark);
+}
+
+.btn--danger {
+  --btn-bg: var(--color-danger);
+  --btn-text: var(--white);
+  --btn-lip: 0 4px 0 var(--color-danger-dark);
+}
+
+.btn--secondary {
+  --btn-bg: var(--color-surface);
+  --btn-text: var(--color-accent-ink);
+  --btn-lip: 0 3px 0 var(--color-border);
+  --btn-lip-width: 3px;
+  border: var(--border-w) solid var(--color-border);
+  padding: calc(var(--space-3) - 2px) calc(var(--space-6) - 2px);
+  min-height: var(--tap-min);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-text: var(--color-text-muted);
+  --btn-lip: none;
+  --btn-lip-width: 0px;
+  font-size: var(--fs-sm);
+  padding: var(--space-2) var(--space-3);
+  min-height: 40px;
+}
+
+.btn--ghost:active:not(:disabled) {
+  background: var(--color-surface-muted);
+  transform: none;
+}
+
+/* ---------------------------------------------------------------- sizes --- */
+
+.btn--lg {
+  min-height: 60px;
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--fs-xl);
+  border-radius: var(--radius-lg);
+}
+
+.btn--lg.btn--secondary {
+  padding: calc(var(--space-4) - 2px) calc(var(--space-8) - 2px);
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* Attention pulse for a pot that is worth banking (stops for reduced motion) */
+.btn--pulse {
+  animation: btn-pulse 1.5s var(--ease-out) infinite;
+}
+
+@keyframes btn-pulse {
+  0%,
+  100% {
+    box-shadow: var(--btn-lip);
+  }
+  50% {
+    box-shadow:
+      var(--btn-lip),
+      var(--ring-focus);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--pulse {
+    animation: none;
+  }
+}
+
+/* Keyboard hints only make sense where there is a keyboard */
+@media (hover: hover) and (pointer: fine) {
+  .btn__kbd {
+    display: inline-block;
+  }
+}

@@ -1,0 +1,193 @@
+/* ============================================================================
+   Dice — big, flat, hard-lipped, animated
+   ========================================================================== */
+
+.dice {
+  --dice-size: clamp(96px, 27vw, 132px);
+  --dice-face: var(--color-surface);
+  --dice-ink: var(--color-text);
+  --dice-border: var(--color-border-strong);
+  --dice-lip-color: var(--color-border-strong);
+  --dice-lip: 7px;
+
+  display: grid;
+  place-items: center;
+  width: var(--dice-size);
+  height: var(--dice-size);
+  margin-inline: auto;
+}
+
+.dice__cube {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: var(--border-w-thick) solid var(--dice-border);
+  border-radius: 22%;
+  background: var(--dice-face);
+  color: var(--dice-ink);
+  box-shadow: 0 var(--dice-lip) 0 var(--dice-lip-color);
+}
+
+.dice__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6%;
+  width: 72%;
+  height: 72%;
+  padding: 0;
+}
+
+.dice__pip {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.dice__pip.is-on {
+  background: currentColor;
+  animation: pip-in 160ms var(--ease-pop) both;
+}
+
+.dice__empty {
+  font-family: var(--font-display);
+  font-size: calc(var(--dice-size) * 0.42);
+  font-weight: var(--fw-black);
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+/* Roomier screens give the die more presence. */
+@media (min-width: 560px) {
+  .dice {
+    --dice-size: clamp(120px, 22vw, 148px);
+    --dice-lip: 8px;
+  }
+}
+
+/* --------------------------------------------------------------- states --- */
+
+.dice.is-rolling .dice__cube {
+  animation: dice-tumble var(--dur-roll) var(--ease-out) 1;
+}
+
+.dice.is-landing .dice__cube {
+  animation: dice-land var(--dur-slow) var(--ease-pop) 1;
+}
+
+.dice--bust {
+  --dice-face: var(--color-danger-pale);
+  --dice-ink: var(--color-danger);
+  --dice-border: var(--color-danger-dark);
+  --dice-lip-color: var(--color-danger-dark);
+}
+
+.dice--bust .dice__cube {
+  animation: dice-shake 440ms var(--ease-out) 1;
+}
+
+.dice--bank {
+  --dice-face: var(--color-brand-pale);
+  --dice-ink: var(--color-brand-dark);
+  --dice-border: var(--color-brand-dark);
+  --dice-lip-color: var(--color-brand-dark);
+}
+
+.dice--win {
+  --dice-face: var(--color-reward);
+  --dice-ink: var(--color-night);
+  --dice-border: var(--color-reward-dark);
+  --dice-lip-color: var(--color-reward-dark);
+}
+
+.dice--win .dice__cube {
+  animation: dice-win 900ms var(--ease-out) infinite;
+}
+
+/* ------------------------------------------------------------ keyframes --- */
+
+@keyframes dice-tumble {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-18px) rotate(-14deg) scale(1.05);
+  }
+  50% {
+    transform: translateY(-4px) rotate(10deg) scale(0.97);
+  }
+  75% {
+    transform: translateY(-13px) rotate(-7deg) scale(1.03);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes dice-land {
+  0% {
+    transform: translateY(-22px) scale(1.05);
+    box-shadow: 0 0 0 var(--dice-lip-color);
+  }
+  55% {
+    transform: translateY(0) scale(1.09);
+    box-shadow: 0 var(--dice-lip) 0 var(--dice-lip-color);
+  }
+  72% {
+    transform: translateY(0) scale(0.94);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 var(--dice-lip) 0 var(--dice-lip-color);
+  }
+}
+
+@keyframes dice-shake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  15% {
+    transform: translateX(-9px) rotate(-4deg);
+  }
+  35% {
+    transform: translateX(8px) rotate(3deg);
+  }
+  55% {
+    transform: translateX(-5px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(3px) rotate(1deg);
+  }
+}
+
+@keyframes dice-win {
+  0%,
+  100% {
+    transform: scale(1) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+@keyframes pip-in {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice.is-rolling .dice__cube,
+  .dice.is-landing .dice__cube,
+  .dice--win .dice__cube,
+  .dice--bust .dice__cube {
+    animation: none;
+  }
+  .dice__pip.is-on {
+    animation: none;
+  }
+}

@@ -1,0 +1,103 @@
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.setup__heading {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.setup__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.setup__field {
+  --field-color: var(--player-1-color);
+  --field-dark: var(--player-1-dark);
+  --field-pale: var(--player-1-pale);
+  --field-ink: var(--player-1-ink);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.setup__field--p2 {
+  --field-color: var(--player-2-color);
+  --field-dark: var(--player-2-dark);
+  --field-pale: var(--player-2-pale);
+  --field-ink: var(--player-2-ink);
+}
+
+.setup__label {
+  color: var(--color-text-muted);
+  padding-inline-start: var(--space-1);
+}
+
+.setup__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 var(--color-border);
+  transition:
+    border-color var(--dur-fast) linear,
+    box-shadow var(--dur-fast) linear;
+}
+
+.setup__control:focus-within {
+  border-color: var(--field-color);
+  box-shadow: 0 4px 0 var(--field-dark);
+}
+
+.setup__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--field-pale);
+  color: var(--field-ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.setup__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  outline: none;
+}
+
+.setup__input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+}
+
+.setup__hint {
+  padding-inline-start: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+@media (min-width: 560px) {
+  .setup__fields {
+    gap: var(--space-5);
+  }
+}

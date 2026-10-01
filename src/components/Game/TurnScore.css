@@ -1,0 +1,97 @@
+.turn-score {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.turn-score__heading {
+  color: var(--color-text-muted);
+}
+
+.turn-score__value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 11vw, 3.25rem);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-brand-dark);
+  animation: pot-bump var(--dur) var(--ease-pop) 1;
+}
+
+/* An empty pot should not compete with the score. */
+.turn-score__value[data-state='empty'] {
+  color: var(--color-text-muted);
+  opacity: 0.55;
+}
+
+.turn-score__sign {
+  margin-inline-end: 2px;
+  font-size: 0.6em;
+  opacity: 0.7;
+}
+
+/* On phones the controls carry the guidance — the pot keeps its own hint text
+   only where there is room to breathe. */
+.turn-score__hint {
+  display: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+@media (min-width: 560px) {
+  .turn-score__hint {
+    display: block;
+  }
+}
+
+/* The burned pot, floating away. */
+.turn-score__ghost {
+  position: absolute;
+  inset-block-start: 40%;
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  color: var(--color-danger);
+  pointer-events: none;
+  animation: pot-burn 900ms var(--ease-out) both;
+}
+
+@keyframes pot-bump {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pot-burn {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-42px) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-score__value {
+    animation: none;
+  }
+  .turn-score__ghost {
+    animation: none;
+    opacity: 0;
+  }
+}
