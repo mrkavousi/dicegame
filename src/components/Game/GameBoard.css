@@ -59,6 +59,14 @@
   color: var(--player-2-ink);
 }
 
+/* Long names truncate rather than wrapping the ribbon onto two lines. */
+.board__turn-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .board__turn-dot {
   width: 10px;
   height: 10px;

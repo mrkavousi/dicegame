@@ -79,7 +79,9 @@ export function GameBoard({ game }) {
             key={`turn-${currentPlayerIndex}-${winner ? 'w' : ''}`}
           >
             <span className="board__turn-dot" aria-hidden="true" />
-            {winner ? `${winner.name} wins!` : `${current.name}'s turn`}
+            <span className="board__turn-name">
+              {winner ? `${winner.name} wins!` : `${current.name}'s turn`}
+            </span>
           </p>
 
           <Dice value={diceValue} mood={diceMood} rolling={isRolling} rollCount={rollCount} />
