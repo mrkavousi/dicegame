@@ -438,7 +438,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-221 tests across nineteen files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+222 tests across twenty files (`tests/games/pig`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -462,7 +462,7 @@ npm test
   keys and placeholders, number formatting, fallbacks, the language toggle
   (`lang`/`dir`, persistence) and a game played in Persian, including shortcuts
   from a Persian keyboard layout.
-* **`tests/casino/*`** — the hash router, stars/rewards maths and corrupt-data handling,
+* **`tests/casino/*`** — a smoke test of the real entry point (`main.jsx` mounts the hall), the hash router, stars/rewards maths and corrupt-data handling,
   the lobby built from the registry (cards, age/player hints, navigation, Back button,
   unknown routes, Persian), and the stars Pig awards (+3 for a win, +1 when the
   computer wins).
