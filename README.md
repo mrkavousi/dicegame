@@ -9,8 +9,8 @@ No betting, no money, no accounts, no ads — everything stays on your device.
 | **Pig** — roll the die, bank your points, beware the 1 | ✅ playable | 2–4 | 6+ |
 | **Connect Four** — drop discs, connect four in a row | ✅ playable | 2 (or vs computer) | 6+ |
 | **Memory Match** — flip cards, find the pairs | ✅ playable | 1–4 | 6+ |
-| Treasure Hunt (push-your-luck, like Pig) | 🔜 next | 2–4 | 7+ |
-| Dots & Boxes | 🔜 planned | 2–4 | 8+ |
+| **Treasure Hunt** — dig up gems, bank them, dodge trapdoors | ✅ playable | 2–4 | 7+ |
+| Dots & Boxes | 🔜 next | 2–4 | 8+ |
 | Mancala | 🔜 planned | 2 (or vs computer) | 8+ |
 
 Built mobile-first with React + Vite, pure rules engines (one per game), and a
@@ -156,6 +156,37 @@ alone to find them all in as few tries as you can.
 
 ---
 
+## Treasure Hunt
+
+Pig's push-your-luck idea in a new skin — and, like everything here, **nothing to bet,
+only points**. A 5×5 field of tiles hides gems (worth 1, 2 or 3) and a few trapdoors.
+
+* On your turn, **open tiles one at a time**; each gem goes into your **pot**.
+* Open a **trapdoor** and the pot is lost — and so is your turn.
+* **Bank** at any time to move the pot into your score and pass the turn.
+* When the **last gem** is found it is banked automatically and the game ends: the
+  highest score wins (ties are shared).
+* **Setup** — 2–4 players, each a person or a computer (Easy / Normal / Hard), and the
+  number of trapdoors: *Few* (3), *Some* (5), *Many* (7).
+* **It teaches odds** — the screen always says how many trapdoors are hiding among how
+  many tiles ("5 trapdoors are hiding among 23 tiles"). How many gems of each value
+  exist is public (`composition()`), so everyone can work out the chances.
+* **Computer** (`src/games/hunt/bot.js`) — it only uses that public knowledge, never the
+  hidden tiles (a test proves two different fields give the same decision). It keeps
+  digging while the pot is below the *break-even pot* `(1 − p) · average gem ÷ p`
+  (p = chance of a trapdoor). *Easy* banks at ~60% of that, *Normal* at 100%, *Hard*
+  adapts: bolder when far behind, safer when well ahead, and it locks in a lead near the end.
+* **Controls** — tap a tile, or Tab + Enter/Space; **arrow keys** move around the field
+  (swapping left/right in Persian, never wrapping across rows); **B** banks. The field is
+  locked during the short hand-over after a trapdoor or a bank, and on the computer's turn.
+* **Saved automatically** (`hunt.game.v1`); a saved field must contain exactly the public
+  composition, otherwise it is rejected as tampered.
+* Stars: +3 for a win, +1 for a tie or when the computer wins.
+* **Code** — `engine.js` (pure), `bot.js` (pure), `useHunt.js` (hand-over timers, bot,
+  autosave, B key), `HuntGame.jsx` + `components/Board.jsx`, `strings.js`, `icon.jsx`.
+
+---
+
 ## Pig — game rules
 
 | # | Rule |
@@ -256,6 +287,7 @@ src/
 │   └── strings.js             # hub + game-card text (EN/FA)
 ├── games/
 │   ├── index.js               # the game registry (add a game = one entry)
+│   ├── hunt/                  # Treasure Hunt: engine.js, bot.js, useHunt.js, HuntGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── memory/                # Memory Match: engine.js, bot.js, useMemory.js, MemoryGame.jsx, components/{Board,Glyph}.jsx, strings.js, icon.jsx
 │   ├── connect4/              # Connect Four: engine.js, bot.js, useConnectFour.js, Connect4Game.jsx, components/Board.jsx, strings.js, icon.jsx
 │   └── pig/                   # everything Pig-specific
@@ -467,7 +499,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-304 tests across 24 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+363 tests across 27 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -501,6 +533,11 @@ npm test
   a random player from both seats, Hard beats Easy) and the UI (setup, lock while a disc
   falls, 1–7 keys, win/draw banners, rematch, stars, computer turns, resume after reload,
   corrupted save, Persian).
+* **`tests/games/hunt.*.test.js(x)`** — the engine (public composition, gem/trapdoor/bank rules,
+  input lock, auto-bank on the last gem, ties, rematch rotation, validated save/restore incl.
+  tampered fields), the bot (break-even maths, level thresholds, never peeks at hidden tiles,
+  Normal outscores Easy) and the UI (setup, odds text, hand-over locks, B key, labels, arrow keys
+  without row-wrapping, win/rematch, computer turns incl. a computer win, resume, bad saves, Persian).
 * **`tests/games/memory.*.test.js(x)`** — the engine (deck has each symbol twice, flip rules and
   input lock, match keeps the turn / miss passes it, ties, solo, rematch rotation, validated
   save/restore), the bot (always flips a legal card, uses only seen cards, recall levels via the
