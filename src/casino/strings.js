@@ -24,6 +24,8 @@ const strings = {
     'game.hunt.desc': 'Dig up gems and bank them — but watch out for trapdoors!',
     'game.dots.name': 'Dots & Boxes',
     'game.dots.desc': 'Draw lines between dots and close boxes to make them yours!',
+    'game.mancala.name': 'Mancala',
+    'game.mancala.desc': 'Sow stones around the board, capture your rival’s and fill your store!',
   },
   fa: {
     'hub.brand': 'سرای بازی',
@@ -47,6 +49,8 @@ const strings = {
     'game.hunt.desc': 'جواهرها را پیدا کن و بانک کن — اما مراقب دریچه‌های تله باش!',
     'game.dots.name': 'نقطه و جعبه',
     'game.dots.desc': 'بین نقطه‌ها خط بکش و جعبه‌ها را ببند تا مال تو شوند!',
+    'game.mancala.name': 'منقله',
+    'game.mancala.desc': 'سنگ‌ها را دور صفحه بکار، سنگ‌های حریف را بگیر و انبارت را پر کن!',
   },
 };
 

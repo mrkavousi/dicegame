@@ -11,7 +11,7 @@ No betting, no money, no accounts, no ads — everything stays on your device.
 | **Memory Match** — flip cards, find the pairs | ✅ playable | 1–4 | 6+ |
 | **Treasure Hunt** — dig up gems, bank them, dodge trapdoors | ✅ playable | 2–4 | 7+ |
 | **Dots & Boxes** — connect dots, close boxes | ✅ playable | 2–4 | 8+ |
-| Mancala | 🔜 next | 2 (or vs computer) | 8+ |
+| **Mancala** — sow stones, capture, fill your store | ✅ playable | 2 (or vs computer) | 8+ |
 
 Built mobile-first with React + Vite, pure rules engines (one per game), and a
 chunky, flat, playful visual language driven by design tokens. English and Persian
@@ -215,6 +215,38 @@ in the rules at all.
 
 ---
 
+## Mancala (Kalah)
+
+Two players, six pits each, and a **store** at each end of the board.
+
+* Pick one of **your** pits, pick up all its stones and **sow** them one by one around the
+  board (counter-clockwise). Your own store gets a stone each lap; your opponent's store is
+  skipped.
+* Your **last stone lands in your store** → you **play again**.
+* It lands in an **empty pit of yours** with stones in the pit across from it → you
+  **capture** them (plus your last stone) into your store.
+* When **one side is empty** the game ends and the other player keeps the stones left on their
+  side. The most stones in the store wins (ties are shared).
+* **Setup** — each seat is a person or a computer (Easy / Normal / Hard), and the number of
+  stones per pit: 3 *Quick*, 4 *Classic*, 5 *Long*.
+* **Computer** (`src/games/mancala/bot.js`) — *Easy* plays a random pit; *Normal* is greedy
+  (extra turn first, then the biggest capture / store gain); *Hard* is **minimax with
+  alpha-beta pruning, 7 moves deep**, with extra turns handled properly. A test checks its
+  move against a plain, unpruned minimax.
+* **Controls** — tap a pit, or Tab + Enter/Space, or press **1–6** (your pits in sowing order;
+  physical keys, so it works on a Persian layout). Each pit shows its number, a dot per stone
+  and the count (in Persian digits in Persian). The board is a physical object, so it is
+  **never mirrored** in right-to-left languages.
+* **Animation** — the sown pits light up one after another (`--step` × 140 ms); the board is
+  locked while stones move, and under *reduced motion* it is only a short beat.
+* **Saved automatically** (`mancala.game.v1`); a saved board must hold exactly 12 × stones, so
+  stones can't appear or vanish, and a board with an empty side loads as a finished game.
+* Stars: +3 for a win, +1 for a tie or when the computer wins.
+* **Code** — `engine.js` (pure; `sow()` is shared with the bot), `bot.js` (pure),
+  `useMancala.js`, `MancalaGame.jsx` + `components/Board.jsx`, `strings.js`, `icon.jsx`.
+
+---
+
 ## Pig — game rules
 
 | # | Rule |
@@ -315,6 +347,7 @@ src/
 │   └── strings.js             # hub + game-card text (EN/FA)
 ├── games/
 │   ├── index.js               # the game registry (add a game = one entry)
+│   ├── mancala/               # Mancala: engine.js, bot.js, useMancala.js, MancalaGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── dots/                  # Dots & Boxes: engine.js, bot.js, useDots.js, DotsGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── hunt/                  # Treasure Hunt: engine.js, bot.js, useHunt.js, HuntGame.jsx, components/Board.jsx, strings.js, icon.jsx
 │   ├── memory/                # Memory Match: engine.js, bot.js, useMemory.js, MemoryGame.jsx, components/{Board,Glyph}.jsx, strings.js, icon.jsx
@@ -528,7 +561,7 @@ Storage failures (private mode, quota) degrade silently to an in-memory game.
 npm test
 ```
 
-418 tests across 30 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
+481 tests across 33 files (`tests/games`, `tests/casino`, `tests/shared`), all deterministic (dice and other randomness are injected, never random):
 
 * **`tests/games/pig/gameLogic.test.js`** — the six scenarios from the brief
   (roll 5 → pot 5; 5+4 → 9; bank → score 9, pot 0, turn passes; 5 then 1 → pot lost,
@@ -562,6 +595,12 @@ npm test
   a random player from both seats, Hard beats Easy) and the UI (setup, lock while a disc
   falls, 1–7 keys, win/draw banners, rematch, stars, computer turns, resume after reload,
   corrupted save, Persian).
+* **`tests/games/mancala.*.test.js(x)`** — the engine (layout and opposite pits, sowing that skips
+  the opponent's store, full laps, extra turns, captures on both sides, end-of-game sweep, ties,
+  stone conservation, validated save/restore), the bot (extra turn / capture preferences, Hard
+  checked against plain minimax, Hard beats a random player from both seats) and the UI (setup, the
+  sowing lock, keys 1–6, captures, finishing and rematch, computer turns incl. a computer win, resume,
+  tampered saves, Persian with an unmirrored board).
 * **`tests/games/dots.*.test.js(x)`** — the engine (geometry for every board size, one line
   completing two boxes, extra turns, ties, rematch rotation, validated save/restore), the bot
   (takes boxes, avoids third sides, gives away the least, Hard's exact solver agrees with an

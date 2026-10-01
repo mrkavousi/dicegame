@@ -1,0 +1,267 @@
+/* Mancala — layout, board, pits, stores and the sowing animation. */
+
+.mnc,
+.mnc-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.mnc-setup {
+  padding-block: var(--space-2) var(--space-8);
+}
+
+.mnc-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-2xl);
+  background: var(--player-3-pale);
+  box-shadow: 0 6px 0 var(--player-3-color);
+  color: var(--player-3-ink);
+  text-align: center;
+}
+
+.mnc-hero__icon svg {
+  width: 56px;
+  height: 56px;
+  color: var(--player-3-dark);
+}
+
+.mnc-hero__title {
+  font-size: clamp(2rem, 11vw, 2.75rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.mnc-hero__tagline {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+}
+
+.mnc-setup__heading {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.mnc-turn {
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.mnc-message {
+  min-height: 1.5em;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.mnc-message--capture,
+.mnc-message--extra {
+  color: var(--color-brand-ink);
+}
+
+.mnc-keys {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- board --- */
+
+.mnc-board {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(6, minmax(0, 1fr)) 1.15fr;
+  grid-template-rows: repeat(2, auto);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-2xl);
+  background: var(--player-3-dark);
+  box-shadow: 0 6px 0 rgb(0 0 0 / 25%);
+}
+
+.mnc-cell {
+  display: grid;
+}
+
+.mnc-pit {
+  --side: var(--player-1-color);
+  --side-dark: var(--player-1-dark);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 84px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--player-3-pale);
+  box-shadow: inset 0 4px 0 rgb(0 0 0 / 18%);
+  color: var(--player-3-ink);
+  cursor: pointer;
+}
+
+.mnc-pit--p2 {
+  --side: var(--player-2-color);
+  --side-dark: var(--player-2-dark);
+}
+
+.mnc-pit:disabled {
+  cursor: default;
+}
+
+.mnc-pit.is-side-active {
+  box-shadow:
+    inset 0 4px 0 rgb(0 0 0 / 18%),
+    0 0 0 3px var(--side);
+}
+
+.mnc-pit:not(:disabled):hover,
+.mnc-pit:focus-visible {
+  background: var(--white);
+  transform: translateY(-2px);
+}
+
+.mnc-pit__number {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  opacity: 0.55;
+}
+
+.mnc-stones {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 3px;
+  max-width: 100%;
+  min-height: 34px;
+}
+
+.mnc-stone {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--side);
+  box-shadow: inset 0 -2px 0 var(--side-dark);
+}
+
+.mnc-pit__count {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+  line-height: 1;
+}
+
+.mnc-store {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-xl);
+  background: var(--player-3-pale);
+  box-shadow: inset 0 4px 0 rgb(0 0 0 / 18%);
+  color: var(--player-3-ink);
+  text-align: center;
+}
+
+.mnc-store--p1 {
+  border: 4px solid var(--player-1-color);
+}
+
+.mnc-store--p2 {
+  border: 4px solid var(--player-2-color);
+}
+
+.mnc-store__name {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mnc-store__count {
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl, 2.25rem);
+  font-weight: var(--fw-black);
+  line-height: 1;
+}
+
+/* ----------------------------------------------------------- animation --- */
+
+.mnc-pit.is-sown,
+.mnc-store.is-gained {
+  animation: mnc-drop 0.4s var(--ease-pop) calc(var(--step, 0) * var(--per-stone, 140ms)) 1 backwards;
+}
+
+.mnc-store.is-gained {
+  --step: 0;
+}
+
+.mnc-pit.is-captured,
+.mnc-store.is-captured {
+  animation: mnc-capture 0.7s ease-in-out 0.1s 1;
+}
+
+@keyframes mnc-drop {
+  from {
+    background: var(--white);
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes mnc-capture {
+  50% {
+    background: var(--player-1-pale);
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 420px) {
+  .mnc-pit {
+    min-height: 72px;
+  }
+
+  .mnc-stone {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mnc-pit.is-sown,
+  .mnc-store.is-gained,
+  .mnc-pit.is-captured,
+  .mnc-store.is-captured {
+    animation: none;
+  }
+
+  .mnc-pit:not(:disabled):hover,
+  .mnc-pit:focus-visible {
+    transform: none;
+  }
+}

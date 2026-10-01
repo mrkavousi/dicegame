@@ -24,6 +24,7 @@ import { Connect4Icon } from './connect4/icon.jsx';
 import { MemoryIcon } from './memory/icon.jsx';
 import { HuntIcon } from './hunt/icon.jsx';
 import { DotsIcon } from './dots/icon.jsx';
+import { MancalaIcon } from './mancala/icon.jsx';
 
 const ENTRIES = [
   {
@@ -65,6 +66,14 @@ const ENTRIES = [
     ages: { from: 8 },
     players: { min: 2, max: 4 },
     load: () => import('./dots/DotsGame.jsx'),
+  },
+  {
+    id: 'mancala',
+    icon: MancalaIcon,
+    accent: 3,
+    ages: { from: 8 },
+    players: { min: 2, max: 2 },
+    load: () => import('./mancala/MancalaGame.jsx'),
   },
 ];
 
