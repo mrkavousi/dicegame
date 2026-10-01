@@ -92,7 +92,7 @@ export function useGame({ storage = true } = {}) {
   const noticeTimerRef = useRef(null);
   const noticeIdRef = useRef(0);
   const resumedRef = useRef(state.status !== GAME_STATUS.SETUP);
-  const reducedMotion = useMemo(prefersReducedMotion, []);
+  const reducedMotion = useMemo(() => prefersReducedMotion(), []);
 
   // Keep the synchronous mirror fresh and drop the input lock once the state
   // produced by the last action has landed in the tree.

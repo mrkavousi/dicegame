@@ -22,7 +22,9 @@ npm run dev       # start the dev server → http://localhost:5173
 npm run build     # production build → dist/
 npm run preview   # serve the production build locally
 npm test          # run the test suite (Vitest + jsdom)
-npm run verify    # tests + production build in one go
+npm run lint      # ESLint
+npm run format    # Prettier (write)
+npm run verify    # lint + tests + production build in one go (also run by CI)
 ```
 
 Requires **Node 18+**.
