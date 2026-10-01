@@ -1,0 +1,280 @@
+/* ============================================================================
+   PlayerCard — identity, total, pot, progress
+   ========================================================================== */
+
+.player-card {
+  --pc-color: var(--player-1-color);
+  --pc-dark: var(--player-1-dark);
+  --pc-pale: var(--player-1-pale);
+  --pc-ink: var(--player-1-ink);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition:
+    transform var(--dur) var(--ease-out),
+    background-color var(--dur) linear,
+    border-color var(--dur) linear,
+    box-shadow var(--dur) linear;
+}
+
+.player-card--p2 {
+  --pc-color: var(--player-2-color);
+  --pc-dark: var(--player-2-dark);
+  --pc-pale: var(--player-2-pale);
+  --pc-ink: var(--player-2-ink);
+}
+
+/* The active player: coloured, raised, impossible to miss. */
+.player-card.is-active {
+  border-color: var(--pc-color);
+  background: var(--pc-pale);
+  box-shadow: 0 5px 0 var(--pc-dark);
+  transform: translateY(-2px);
+}
+
+.player-card.is-winner {
+  border-color: var(--color-reward);
+  background: var(--color-brand-pale);
+  box-shadow: 0 5px 0 var(--color-reward-dark);
+}
+
+/* The waiting player: quieter, flatter, desaturated. */
+.player-card.is-waiting {
+  background: var(--color-surface-muted);
+  box-shadow: none;
+}
+
+.player-card.is-waiting .player-card__avatar {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.player-card.is-waiting .player-card__score {
+  color: var(--color-text-muted);
+}
+
+/* ------------------------------------------------------------------ head --- */
+
+.player-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.player-card__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--pc-color);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  line-height: 1;
+}
+
+.player-card__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.player-card__label {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+}
+
+.player-card__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-card__status {
+  margin-inline-start: auto;
+}
+
+.player-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.player-card__chip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.player-card__chip--turn {
+  background: var(--pc-color);
+  color: var(--white);
+  animation: chip-pop var(--dur-slow) var(--ease-pop) 1;
+}
+
+.player-card__chip--waiting {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.player-card__chip--win {
+  background: var(--color-reward);
+  color: var(--color-night);
+}
+
+/* ----------------------------------------------------------------- score --- */
+
+.player-card__score {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  animation: score-bump var(--dur-slow) var(--ease-pop) 1;
+}
+
+.player-card__crown {
+  display: inline-flex;
+  color: var(--color-reward-dark);
+}
+
+.player-card__crown svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ------------------------------------------------------------------- pot --- */
+
+.player-card__pot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 2px solid var(--pc-color);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--pc-ink);
+}
+
+.player-card__pot[data-empty='true'] {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.player-card__pot-value {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- progress --- */
+
+.player-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.player-card__bar {
+  position: relative;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.player-card__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--pc-color);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.player-card__remaining {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+}
+
+/* ------------------------------------------------------------ keyframes --- */
+
+@keyframes score-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes chip-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card__score,
+  .player-card__chip--turn {
+    animation: none;
+  }
+  .player-card__fill {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- ≥560px --- */
+
+@media (min-width: 560px) {
+  .player-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-xl);
+  }
+
+  .player-card__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: var(--fs-xl);
+  }
+
+  .player-card__score {
+    font-size: var(--fs-4xl);
+  }
+
+  .player-card__name {
+    font-size: var(--fs-lg);
+  }
+}

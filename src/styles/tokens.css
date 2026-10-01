@@ -1,0 +1,257 @@
+/* ============================================================================
+   PIG — Design Tokens
+   Single source of truth for colour, type, space, radii, elevation & motion.
+   Components must never hard-code a colour: always use a semantic token.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------ *
+   * 1. RAW PALETTE
+   * ------------------------------------------------------------------ */
+  --green-500: #58cc02; /* Primary Green   */
+  --green-700: #58a700; /* Dark Green      */
+  --green-300: #a5ed6e; /* Light Green     */
+  --green-100: #d7ffb8; /* Pale Green      */
+  --green-ink: #173300; /* AA text ink on green fills (13.1:1 on Pale Green) */
+
+  --blue-500: #1cb0f6; /* Blue                             */
+  --blue-700: #1899d6; /* darker blue — hard lips          */
+  --blue-100: #ddf4ff; /* Pale Blue                        */
+  --blue-ink: #0b6e9e; /* AA text ink on pale blue / white  */
+
+  --navy-900: #000437; /* Dark Navy  */
+  --navy-800: #100f3e; /* Deep Navy  */
+
+  --white: #ffffff;
+  --gray-100: #f4f4f4;
+  --gray-200: #e5e5e5; /* Light Gray */
+  --gray-300: #d1d1d1; /* derived — lip on white surfaces */
+
+  --ink-900: #3c3c3c; /* Dark Text      */
+  --ink-700: #4b4b4b; /* Secondary Text */
+  --ink-500: #777777; /* Muted Text     */
+
+  /* Risk / error + celebration accents (derived, kept minimal) */
+  --red-500: #ff4b4b;
+  --red-700: #d63a3a;
+  --red-100: #ffe1e1;
+  --red-ink: #7a1414;
+  --yellow-400: #ffc800;
+  --yellow-700: #d99f00;
+
+  /* ------------------------------------------------------------------ *
+   * 2. SEMANTIC TOKENS  (what components consume)
+   * ------------------------------------------------------------------ */
+  --color-bg: var(--white);
+  --color-bg-sunk: var(--gray-100);
+  --color-surface: var(--white);
+  --color-surface-muted: var(--gray-100);
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-300);
+
+  --color-text: var(--ink-900);
+  --color-text-secondary: var(--ink-700);
+  --color-text-muted: var(--ink-500);
+  --color-text-inverse: var(--white);
+
+  --color-brand: var(--green-500);
+  --color-brand-dark: var(--green-700);
+  --color-brand-light: var(--green-300);
+  --color-brand-pale: var(--green-100);
+  --color-brand-ink: var(--green-ink);
+
+  --color-accent: var(--blue-500);
+  --color-accent-dark: var(--blue-700);
+  --color-accent-pale: var(--blue-100);
+  --color-accent-ink: var(--blue-ink);
+
+  --color-danger: var(--red-500);
+  --color-danger-dark: var(--red-700);
+  --color-danger-pale: var(--red-100);
+  --color-danger-ink: var(--red-ink);
+
+  --color-reward: var(--yellow-400);
+  --color-reward-dark: var(--yellow-700);
+
+  --color-night: var(--navy-900);
+  --color-night-soft: var(--navy-800);
+
+  /* Player identity colours (P1 green · P2 blue) */
+  --player-1-color: var(--green-500);
+  --player-1-dark: var(--green-700);
+  --player-1-pale: var(--green-100);
+  --player-1-ink: var(--green-ink);
+
+  --player-2-color: var(--blue-500);
+  --player-2-dark: var(--blue-700);
+  --player-2-pale: var(--blue-100);
+  --player-2-ink: var(--navy-800);
+
+  /* Interactive states */
+  --color-focus: var(--blue-500);
+  --color-disabled-bg: var(--gray-200);
+  --color-disabled-text: var(--ink-500);
+  --color-overlay: rgb(16 15 62 / 72%);
+
+  /* ------------------------------------------------------------------ *
+   * 3. TYPOGRAPHY
+   * ------------------------------------------------------------------ */
+  --font-display: 'Baloo 2', 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Barlow', 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-2xs: 0.6875rem; /* 11px */
+  --fs-xs: 0.75rem; /* 12px */
+  --fs-sm: 0.875rem; /* 14px */
+  --fs-md: 1rem; /* 16px */
+  --fs-lg: 1.125rem; /* 18px */
+  --fs-xl: 1.375rem; /* 22px */
+  --fs-2xl: 1.75rem; /* 28px */
+  --fs-3xl: 2.25rem; /* 36px */
+  --fs-4xl: 3rem; /* 48px */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+
+  --tracking-label: 0.08em;
+  --tracking-wide: 0.04em;
+
+  /* ------------------------------------------------------------------ *
+   * 4. SPACE (4px base grid)
+   * ------------------------------------------------------------------ */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ------------------------------------------------------------------ *
+   * 5. RADII
+   * ------------------------------------------------------------------ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-pill: 999px;
+
+  /* ------------------------------------------------------------------ *
+   * 6. ELEVATION — hard "lips" only, never blurred soft shadows
+   * ------------------------------------------------------------------ */
+  --lip-1: 0 2px 0 var(--color-border);
+  --lip-2: 0 3px 0 var(--color-border);
+  --lip-3: 0 4px 0 var(--color-brand-dark);
+  --lip-4: 0 5px 0 var(--color-border);
+  --lip-5: 0 6px 0 var(--color-border);
+  --lip-none: none;
+  --ring-focus: 0 0 0 4px rgb(28 176 246 / 35%);
+  --color-shadow: rgb(0 0 0 / 25%);
+  --color-shadow-strong: rgb(0 0 0 / 40%);
+
+  /* Celebration confetti — sampled from the palette, never one-off colours. */
+  --confetti-1: var(--green-500);
+  --confetti-2: var(--blue-500);
+  --confetti-3: var(--yellow-400);
+  --confetti-4: var(--red-500);
+  --confetti-5: var(--green-300);
+  --confetti-6: var(--white);
+
+  /* ------------------------------------------------------------------ *
+   * 7. MOTION
+   * ------------------------------------------------------------------ */
+  --dur-instant: 90ms;
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 360ms;
+  --dur-roll: 460ms; /* dice tumble — kept inside the 300–700ms brief */
+  --ease-out: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --ease-pop: cubic-bezier(0.34, 1.46, 0.64, 1);
+
+  /* ------------------------------------------------------------------ *
+   * 8. LAYOUT
+   * ------------------------------------------------------------------ */
+  --board-width: 560px;
+  --panel-width: 240px;
+  --header-height: 60px;
+  --tap-min: 48px;
+  --border-w: 2px;
+  --border-w-thick: 3px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --z-board: 1;
+  --z-banner: 20;
+  --z-header: 30;
+  --z-modal: 60;
+
+  color-scheme: light;
+}
+
+/* --------------------------------------------------------------------------
+   NIGHT THEME — used by the winner / main-menu celebration surfaces.
+   Re-maps semantic tokens so shared components stay token-driven.
+   -------------------------------------------------------------------------- */
+.theme-night {
+  --color-bg: var(--color-night);
+  --color-bg-sunk: var(--color-night-soft);
+  --color-surface: var(--color-night-soft);
+  --color-surface-muted: rgb(255 255 255 / 8%);
+  --color-border: rgb(255 255 255 / 18%);
+  --color-border-strong: rgb(255 255 255 / 30%);
+  --color-text: var(--white);
+  --color-text-secondary: rgb(255 255 255 / 82%);
+  --color-text-muted: rgb(255 255 255 / 62%);
+  --lip-1: 0 2px 0 rgb(255 255 255 / 18%);
+  --lip-2: 0 3px 0 rgb(255 255 255 / 18%);
+  --lip-4: 0 5px 0 rgb(255 255 255 / 18%);
+  --lip-5: 0 6px 0 rgb(255 255 255 / 18%);
+  color-scheme: dark;
+}
+
+/* Restores the light remap for a subtree nested inside `.theme-night`
+   (e.g. the white result card on the navy winner screen). */
+.theme-light {
+  --color-bg: var(--white);
+  --color-bg-sunk: var(--gray-100);
+  --color-surface: var(--white);
+  --color-surface-muted: var(--gray-100);
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-300);
+  --color-text: var(--ink-900);
+  --color-text-secondary: var(--ink-700);
+  --color-text-muted: var(--ink-500);
+  --lip-1: 0 2px 0 var(--color-border);
+  --lip-2: 0 3px 0 var(--color-border);
+  --lip-4: 0 5px 0 var(--color-border);
+  --lip-5: 0 6px 0 var(--color-border);
+  --color-disabled-bg: var(--gray-200);
+  --color-disabled-text: var(--ink-500);
+  color-scheme: light;
+}
+
+/* The document background follows the shell theme (used by the winner screen). */
+body.is-night {
+  background: var(--color-night);
+}
+
+/* --------------------------------------------------------------------------
+   REDUCED MOTION — shorten everything, keep the feedback (never remove it).
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur: 1ms;
+    --dur-slow: 1ms;
+    --dur-roll: 120ms;
+  }
+}

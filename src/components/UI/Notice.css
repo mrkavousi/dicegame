@@ -1,0 +1,138 @@
+/* ============================================================================
+   Notice — transient game feedback ("OH NO!", "+12 SECURED", "GAME RESTORED")
+   Never interactive: taps pass straight through to the game controls.
+   ========================================================================== */
+
+/* Anchored to the bottom on purpose: after a bank or a bust the player is
+   looking at the scores and the pot, so the banner must never cover them.
+   Input is locked while it is on screen and it never intercepts taps. */
+.notice {
+  position: fixed;
+  inset-block-end: calc(var(--space-4) + var(--safe-bottom));
+  inset-inline: 0;
+  z-index: var(--z-banner);
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--space-4);
+  pointer-events: none;
+}
+
+.notice__card {
+  width: min(420px, 100%);
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-w-thick) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 5px 0 var(--color-border);
+  text-align: center;
+  animation: notice-in var(--dur) var(--ease-pop) both;
+}
+
+.notice__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.notice__line {
+  margin-top: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
+}
+
+.notice__turn {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2px dashed currentColor;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  animation: notice-turn var(--dur) var(--ease-pop) 520ms both;
+}
+
+/* ---------------------------------------------------------------- tones --- */
+
+.notice--bust .notice__card {
+  border-color: var(--color-danger-dark);
+  background: var(--color-danger);
+  box-shadow: 0 5px 0 var(--color-danger-dark);
+  color: var(--white);
+  animation:
+    notice-in var(--dur) var(--ease-pop) both,
+    notice-shake 420ms var(--ease-out) 120ms both;
+}
+
+.notice--bust .notice__title {
+  font-size: var(--fs-2xl);
+}
+
+.notice--bust .notice__line {
+  color: var(--white);
+  opacity: 0.92;
+}
+
+.notice--bank .notice__card {
+  border-color: var(--color-brand-dark);
+  background: var(--color-brand-pale);
+  box-shadow: 0 5px 0 var(--color-brand-dark);
+  color: var(--color-brand-ink);
+}
+
+.notice--bank .notice__line {
+  color: var(--color-brand-ink);
+  opacity: 0.8;
+}
+
+.notice--info .notice__card {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 5px 0 var(--color-border);
+}
+
+/* ------------------------------------------------------------ keyframes --- */
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.9);
+  }
+}
+
+@keyframes notice-turn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes notice-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-7px) rotate(-1deg);
+  }
+  45% {
+    transform: translateX(6px) rotate(1deg);
+  }
+  70% {
+    transform: translateX(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice__card,
+  .notice--bust .notice__card {
+    animation: notice-in 1ms linear both;
+  }
+  .notice__turn {
+    animation: none;
+  }
+}

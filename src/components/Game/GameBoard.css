@@ -1,0 +1,182 @@
+/* ============================================================================
+   GameBoard — mobile-first play layout
+   ========================================================================== */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--board-width);
+  margin-inline: auto;
+}
+
+.board__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------- players --- */
+
+.board__players {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* ----------------------------------------------------------------- stage --- */
+
+.board__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: 0 var(--space-2);
+}
+
+.board__turn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-3);
+  border: var(--border-w) solid var(--player-1-color);
+  border-radius: var(--radius-pill);
+  background: var(--player-1-pale);
+  color: var(--player-1-ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  animation: turn-in var(--dur) var(--ease-pop) 1;
+}
+
+.board__turn--p2 {
+  border-color: var(--player-2-color);
+  background: var(--player-2-pale);
+  color: var(--player-2-ink);
+}
+
+/* Long names truncate rather than wrapping the ribbon onto two lines. */
+.board__turn-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board__turn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--player-1-color);
+  animation: dot-pulse 1.6s var(--ease-out) infinite;
+}
+
+.board__turn--p2 .board__turn-dot {
+  background: var(--player-2-color);
+}
+
+/* ---------------------------------------------------------------- aside --- */
+
+.board__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.board__keys {
+  display: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  text-align: center;
+}
+
+.board__keys kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 5px;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
+}
+
+@keyframes turn-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+  }
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board__turn,
+  .board__turn-dot {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------- ≥560px --- */
+
+@media (min-width: 560px) {
+  .board {
+    gap: var(--space-5);
+  }
+
+  .board__players {
+    gap: var(--space-4);
+  }
+
+  .board__stage {
+    gap: var(--space-5);
+    padding-block: var(--space-2) var(--space-4);
+  }
+}
+
+/* ---------------------------------------------------------------- ≥720px --- */
+
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
+  .board__keys {
+    display: block;
+  }
+}
+
+/* --------------------------------------------------------------- ≥1100px --- */
+
+@media (min-width: 1100px) {
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--panel-width);
+    align-items: start;
+    gap: var(--space-8);
+    max-width: calc(var(--board-width) + var(--panel-width) + var(--space-8));
+    padding-block-start: var(--space-4);
+  }
+
+  .board__aside {
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--space-4));
+    gap: var(--space-4);
+  }
+
+  .board__stage {
+    gap: var(--space-6);
+    padding-block: var(--space-4) var(--space-6);
+  }
+}

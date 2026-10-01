@@ -1,0 +1,220 @@
+/* ============================================================================
+   WinnerScreen — celebration on the Deep Navy surface
+   ========================================================================== */
+
+.winner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(100dvh - var(--header-height) - var(--space-12));
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------- confetti --- */
+
+.winner__confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.winner__confetti-piece {
+  position: absolute;
+  inset-block-start: -12vh;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall linear infinite;
+}
+
+.winner__confetti-piece.is-round {
+  border-radius: 50%;
+}
+
+/* ---------------------------------------------------------------- card --- */
+
+.winner__card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(440px, 100%);
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface);
+  box-shadow: 0 6px 0 var(--color-shadow-strong);
+  text-align: center;
+  animation: winner-in var(--dur-slow) var(--ease-pop) both;
+}
+
+.winner__trophy {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-pill);
+  background: var(--color-reward);
+  box-shadow: 0 5px 0 var(--color-reward-dark);
+  color: var(--color-night);
+  animation: trophy-pop 700ms var(--ease-pop) 120ms both;
+}
+
+.winner__trophy svg {
+  width: 40px;
+  height: 40px;
+}
+
+.winner__eyebrow {
+  color: var(--color-text-muted);
+}
+
+.winner__title {
+  font-size: clamp(2.25rem, 11vw, 3rem);
+  line-height: 1;
+  color: var(--color-brand-dark);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.winner__title:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.winner__score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.winner__score-value {
+  font-family: var(--font-display);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.winner__score-label {
+  color: var(--color-text-muted);
+}
+
+.winner__loser {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.winner__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-brand);
+}
+
+.winner__dot--p2 {
+  background: var(--color-accent);
+}
+
+.winner__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+  padding-block: var(--space-3);
+  border-block: 2px dashed var(--color-border);
+}
+
+.winner__stat dt {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+}
+
+.winner__stat dd {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.winner__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  margin-block-start: var(--space-2);
+}
+
+/* ------------------------------------------------------------ keyframes --- */
+
+@keyframes winner-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+}
+
+@keyframes trophy-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-18deg);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) rotate(540deg);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winner__card,
+  .winner__trophy {
+    animation: none;
+  }
+  .winner__confetti-piece {
+    animation: none;
+    display: none;
+  }
+}
+
+@media (min-width: 560px) {
+  .winner__card {
+    padding: var(--space-8) var(--space-8) var(--space-6);
+    gap: var(--space-4);
+  }
+
+  .winner__trophy {
+    width: 84px;
+    height: 84px;
+  }
+
+  .winner__trophy svg {
+    width: 46px;
+    height: 46px;
+  }
+
+  .winner__actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

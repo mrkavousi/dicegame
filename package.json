@@ -1,0 +1,32 @@
+{
+  "name": "pig-dice-game",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "PIG — a fast, polished two-player local-multiplayer dice game. First to 100 wins.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "vitest run && vite build"
+  },
+  "dependencies": {
+    "@fontsource/baloo-2": "^5.1.0",
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/vazirmatn": "^5.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.1",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
